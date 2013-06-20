@@ -17,7 +17,7 @@ var tmp_files = temp & "*.tmp"; // all .tmp files in temp directory
 
 // Equivalent code in the classical form
 
-var files = Directory.EnumerateFiles(Path.Combine(temp, "*.tmp"));
+var files = Directory.EnumerateFiles(temp, "*.tmp");
 
                 
 // List files by match comparer

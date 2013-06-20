@@ -194,7 +194,7 @@ namespace _4._0_Test
 
                 // Equivalent code in the classical form
 
-                var files = Directory.EnumerateFiles(Path.Combine(temp, "*.tmp"));
+                var files = Directory.EnumerateFiles(temp, "*.tmp");
 
                 
                 // List files by match comparer
