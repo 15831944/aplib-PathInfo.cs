@@ -182,6 +182,9 @@ namespace _4._0_Test
         public void Enumerable()
         {
             PathInfo temp = Path.GetTempPath();
+            // var temp = new PathInfo(@"C:\TEMP");
+            // var temp = new PathInfo(@"C:\TEMP", subdir, filename);
+            // var tmp = some_path.Combine("some path segment");
 
             try
             {
