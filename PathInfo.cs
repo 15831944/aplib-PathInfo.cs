@@ -1419,12 +1419,14 @@ namespace System.IO
 
     #region    ------------------ Bulk Pattern Origin ------------------
 
+    /* Copyright © 2012 Vadim Baklanov (Ad), distributed under the MIT License
+     * When copying, use or create derivative works do not remove or modify this attribution, and this license text.*/
+
     /* Основная суть этого паттерна получить групповой результат выполнения операции над перечислимым множеством для последующей обработки ошибок или успехов пакетной операцией.
      * Паттерн еще не закончен в том смысле, что нужно еще добавить устоявшийся способ группировки результатов множества операций над одним или несколькими перечислимыми множествами.
      * 
      * The main essence of this pattern have group result of the operation of the enumerable set for later processing error or success batch operation.
-     * The pattern is not yet complete in the sense that it is necessary to add an method of grouping results of multiple operations involving one or more enumerated sets.
-     */
+     * The pattern is not yet complete in the sense that it is necessary to add an method of grouping results of multiple operations involving one or more enumerated sets. */
 
     public class WrapException<T> : Exception
     {
