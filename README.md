@@ -68,4 +68,5 @@ catch (BulkException<PathInfo> e)
 	foreach(var ewrapper in e.Failed)
 		Assert.Fail("failed " + ewrapper.Object);
 }
+
 ```

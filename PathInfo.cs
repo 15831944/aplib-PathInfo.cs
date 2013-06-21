@@ -17,7 +17,6 @@ using System.Xml.Serialization;
 #endregion used_system_xml
 using IOPath = System.IO.Path;
 
-
 /* Copyright © 2012 Vadim Baklanov (Ad), distributed under the MIT License
  * When copying, use or create derivative works do not remove or modify this attribution, and this license text.*/
 
@@ -47,7 +46,7 @@ namespace System.IO
         public static char   AltDirectorySeparatorChar = IOPath.AltDirectorySeparatorChar;
         public static char   VolumeSeparatorChar       = IOPath.VolumeSeparatorChar;
         public static char[] InvalidFileNameChars      = IOPath.GetInvalidFileNameChars().OrderBy(chr => chr).ToArray();
-        public static char[] InvalidPathChars          = IOPath.GetInvalidPathChars();
+        public static char[] InvalidPathChars          = IOPath.GetInvalidPathChars().OrderBy(chr => chr).ToArray();
 
         // Basic attributes
 
@@ -1615,37 +1614,32 @@ namespace System.IO
     {
         public static PathList operator +(PathList paths1, IEnumerable<PathInfo> paths2)
         {
-            var list  = new PathList(paths1.Count + paths2.Count());
-            list.AddRange(paths1);
-            list.AddRange(paths2);
+            var list  = new PathList();
+            list.AddRange(paths1.Union(paths2));
             return list;
         }
 
         public static PathList operator -(PathList paths1, IEnumerable<PathInfo> paths2)
         {
-            var list  = new PathList(paths1);
+            var list  = new PathList();
             
-            foreach(var path2 in paths2)
-            {
-                var index = list.IndexOf(path2);
-                if (index >= 0)
-                    list.RemoveAt(index);
-            }
+            foreach(var path1 in paths1)
+            if (!paths2.Contains(path1))
+                list.Add(path1);
 
             return list;
         }
 
-        public static PathList operator -(PathList paths1, string search_pattern)
+        public static PathList operator -(PathList paths1, Func<PathInfo,bool> match_comparer)
         {
-            var list  = new PathList(paths1);
+            var list  = new PathList(paths1.Count);
 
-            for(int i = paths1.Count - 1; i >= 0; i--)
+            for(int i = 0, c = paths1.Count; i < c; i++)
             {
                 var path = paths1[i];
 
-                // ...
-
-                list.Remove(path);
+                if (!match_comparer(paths1[i]))
+                    list.Add(path);
             }
             
             return list;

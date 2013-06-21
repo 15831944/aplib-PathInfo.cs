@@ -224,7 +224,7 @@ namespace _4._0_Test
                 {
                     // Rename .tmp files to .tmp.bak
                     (temp & "*.tmp")
-                        .Bulk(path => { path.FileMove(path.FullPath + ".bak"); });
+                        .Bulk(path => { path.FileMove(path + ".bak"); });
                 }
                 catch (BulkException<PathInfo> e)
                 {
@@ -239,7 +239,7 @@ namespace _4._0_Test
                 {
                     // a b c hidden directories creation example
 
-                    new PathList(new[] { temp / "a", temp/ "b", temp / "c" })
+                    new PathList(new[] { temp / "a", temp / "b", temp / "c" })
                         .Bulk(path => { path.DirectoryCreate().DirectoryInfo.Attributes |= FileAttributes.Hidden; });
 
                 }
@@ -281,6 +281,25 @@ namespace _4._0_Test
             var deserialized = (PathInfo)new BinaryFormatter().Deserialize(mem);
 
             Assert.AreEqual(deserialized.FullPath, @"C:\TEMP\A\Z", "xml serialization simple file path");
+        }
+
+        // Examples
+
+        [TestMethod()]
+        public void IniFile()
+        {
+            var ini = new IniFile(PathInfo.TEMP / "test.ini");
+
+            ini[null] = "default value";
+            ini["value 1"] = "1";
+            ini["section 1", "value 2"] = "1-2";
+
+            var another_instance = new IniFile(PathInfo.TEMP / "test.ini");
+            Assert.AreEqual(another_instance[null], "default value", "default value");
+            Assert.AreEqual(another_instance["value 1"], "1", "1");
+            Assert.AreEqual(another_instance["section 1", "value 2"], "1-2", "1-2");
+
+            ini.TryFileDelete();
         }
     }
 }
