@@ -1,4 +1,5 @@
-﻿using System;
+﻿//#define used_system_xml // If you do not import the System.Xml namespace, comment out this line
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,10 +8,15 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Security.AccessControl;
 using System.Text;
+#region used_system_xml
+#if used_system_xml
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+#endif
+#endregion used_system_xml
 using IOPath = System.IO.Path;
+
 
 /* Copyright © 2012 Vadim Baklanov (Ad), distributed under the MIT License
  * When copying, use or create derivative works do not remove or modify this attribution, and this license text.*/
@@ -20,15 +26,28 @@ namespace System.IO
     /// <summary>This class encapsulates a file system path (not shell path!) and wraps Path, File, Directory static class methods
     /// from System.IO namespace, provides FileInfo DirectoryInfo objects, has additional properties and methods.
     /// See also my ShellPathInfo</summary>
+#region used_system_xml
+#if used_system_xml
     [XmlRoot("Path")]
-	[Serializable]
+#endif
+#endregion used_system_xml
+    [Serializable]
     [ComVisible(true)]
-	public partial class PathInfo : IComparable, IComparable<PathInfo>, ISerializable, IXmlSerializable
-	{
+	public partial class PathInfo : IEquatable<PathInfo>, IComparable, IComparable<PathInfo>, ISerializable
+#region used_system_xml
+#if used_system_xml
+        , IXmlSerializable
+#endif
+#endregion used_system_xml
+    {
         // Constants
 
-        public static char[] PathSeparators = new[] { IOPath.DirectorySeparatorChar, IOPath.AltDirectorySeparatorChar };
-        public static char[] InvalidFileNameChars = IOPath.GetInvalidFileNameChars();
+        public static char[] PathSeparators            = new[] { IOPath.DirectorySeparatorChar, IOPath.AltDirectorySeparatorChar };
+        public static char   DirectorySeparatorChar    = IOPath.DirectorySeparatorChar;
+        public static char   AltDirectorySeparatorChar = IOPath.AltDirectorySeparatorChar;
+        public static char   VolumeSeparatorChar       = IOPath.VolumeSeparatorChar;
+        public static char[] InvalidFileNameChars      = IOPath.GetInvalidFileNameChars().OrderBy(chr => chr).ToArray();
+        public static char[] InvalidPathChars          = IOPath.GetInvalidPathChars();
 
         // Basic attributes
 
@@ -385,6 +404,37 @@ namespace System.IO
         }
 
         /// <summary>Invariant ignore case equality of paths comparer. Empty (unassigned) PathInfo equal other empty PathInfo.</summary>
+        public bool Equals(PathInfo other)
+        {
+            var obj = (object)other;
+
+            if (obj == null)
+                return false; // Guidelines for Overloading Equals()
+
+            // compare object references
+
+            if ((object)this == obj)
+                return true;
+
+            // compare to PathInfo
+
+            string other_path_string = other.FullPathUpperCase;              // Later this eliminate internal to upper case transformation in string.Equals
+
+            if (other_path_string == null)
+                return true; // Guidelines for Overloading Equals()
+
+            // compare to other path as string
+
+            if (Empty)
+                return false;
+
+            return string.Equals(
+                FullPathUpperCase,                              // Eliminate internal to upper case transformation
+                other_path_string, 
+                StringComparison.InvariantCultureIgnoreCase);   // Windows always treats file names and Universal Resource Identifiers as invariant
+        }
+
+        /// <summary>Invariant ignore case equality of paths comparer. Empty (unassigned) PathInfo equal other empty PathInfo.</summary>
         [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
         public static bool operator ==(PathInfo path1, PathInfo path2)
         {
@@ -710,6 +760,9 @@ namespace System.IO
 
         // XML serialization
 
+#region used_system_xml
+#if used_system_xml
+
         public XmlSchema GetSchema()
         {
             return null;
@@ -751,6 +804,9 @@ namespace System.IO
             }
         }
 		
+#endif
+#endregion used_system_xml
+        
         // * ^ & child enumeration operators and other enumerators
                
         /// <summary>
@@ -808,7 +864,7 @@ namespace System.IO
             return Directory
                 .EnumerateFileSystemEntries(FullPath, "*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
                 .Select(path => new PathInfo(path))
-                    .ToList();
+                .ToList();
         }
 
         /// <summary>
@@ -838,7 +894,7 @@ namespace System.IO
                     return Directory
                         .EnumerateFileSystemEntries(FullPath)
                         .Select(path => new PathInfo(path))
-                    .ToList();
+                        .ToList();
 
                 search_pattern = "*";
             }
@@ -846,7 +902,7 @@ namespace System.IO
             return Directory
                 .EnumerateFileSystemEntries(FullPath, search_pattern, recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
                 .Select(path => new PathInfo(path))
-                    .ToList();
+                .ToList();
         }
 
         public PathList FileSystemEntries(Func<string,bool> match_comparer, bool recursive = false)
@@ -856,13 +912,13 @@ namespace System.IO
                     .EnumerateFileSystemEntries(FullPath)
                     .Where(path => match_comparer(path))
                     .Select(path => new PathInfo(path))
-                .ToList();
+                    .ToList();
 
             return Directory
                 .EnumerateFileSystemEntries(FullPath, "*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
                 .Where(path => match_comparer(path))
                 .Select(path => new PathInfo(path))
-                    .ToList();
+                .ToList();
         }
 
         public static PathList operator ^(PathInfo path, string search_pattern)
@@ -1030,29 +1086,248 @@ namespace System.IO
 			return true;
 		}
 
-		
-	}
 
-    // TODO Full mapping of the System.IO.File class methods on the PathInfo.File* methods
-    public partial class PathInfo
-    {
+        // Special folders /////////////////////////////////////////////////////////////////////////////////////////////
+
+
+        public static PathInfo TEMP
+        {
+            get { return new PathInfo(IOPath.GetTempPath()); }
+        }
+
+        public static PathInfo APPLICATION_DATA_ROAMING
+        {
+            get { return new PathInfo(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)); }
+        }
+
+        public static PathInfo APPLICATION_DATA_LOCAL
+        {
+            get { return new PathInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)); }
+        }
+
+        public static PathInfo DESKTOP_DIRECTORY
+        {
+            get { return new PathInfo(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)); }
+        }
+
+        public static PathInfo USER
+        {
+            get { return new PathInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)); }
+        }
+
+
+        // Name generators /////////////////////////////////////////////////////////////////////////////////////////////
+        
+
+        /// <summary>Create random path.</summary>
+        /// <param name="name_pattern">Can contains {0} wildcard</param>
+        /// <param name="extension">File or directory name extension</param>
+        /// <param name="force_unique">To validate the uniqueness the path in the file system</param>
+        /// <returns></returns>
+        public PathInfo GenerateRandom(string name_pattern = null, string extension = null, bool force_unique = true)
+        {
+            bool name_pattern_formattable = (name_pattern != null && name_pattern.Contains("{0}"));
+
+            var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789090"; // length 64
+            var builder = new StringBuilder(((name_pattern == null) ? 0 : name_pattern.Length) + ((extension == null) ? 0 : extension.Length) + 7);
+            
+            builder.Append(name_pattern);
+
+            // generate random key
+
+            var rnd = new Random(Environment.TickCount);
+            for(int i = 0; i < 6; i++)
+                builder.Append(chars[rnd.Next(63)]);
+            
+            // append extension
+
+            if (extension != null)
+            {
+                if (!extension.StartsWith("."))
+                    builder.Append('.');
+
+                builder.Append(extension);
+            }
+
+            var name = (name_pattern_formattable) ? string.Format(name_pattern, builder.ToString()) : builder.ToString();
+
+            // uniqueness check file path
+
+            if (force_unique)
+            {
+                // Retry generate if finded matching name
+
+                if (FileSystemEntries(name).Any())
+                    return GenerateRandom(name_pattern, extension, force_unique);
+            }
+
+            return Combine(name);
+        }
+
+        /// <summary>Create a number of random paths.</summary>
+        /// <param name="number"></param>
+        /// <param name="name_pattern"></param>
+        /// <param name="extension"></param>
+        /// <param name="force_unique"></param>
+        /// <returns></returns>
+        public PathList GenerateManyRandom(int number, string name_pattern = null, string extension = null, bool force_unique = true)
+        {
+            var result = new PathList(number);
+            
+            for(int i = 0; i < number; i++)
+                result.Add(GenerateRandom(name_pattern, extension, force_unique));
+
+            return result;
+        }
+
+        public PathList GenerateManyNumbered(int start, int number,  string name_pattern = null, string extension = null, bool force_unique = true)
+        {
+            var result = new PathList(number);
+            bool name_pattern_formattable = (name_pattern != null && name_pattern.Contains("{0}"));
+            
+            for(int i = start, c = start + number; i < c; i++)
+            {
+                if (name_pattern_formattable)
+                    result.Add(Combine(string.Format(name_pattern, i.ToString()) + extension));
+                else
+                    result.Add(Combine(name_pattern + " " + i.ToString() + extension));
+            }
+
+            return result;
+        }
+
+        /// <summary>Generate new unique name</summary>
+        /// <param name="name_pattern">Valid file name chars only</param>
+        /// <param name="extension"></param>
+        /// <param name="force_unique"></param>
+        /// <returns></returns>
+        public PathInfo GenerateNewName(string name_pattern = null, string extension = null)
+        {
+            // Validate name
+
+            var name_filter = new StringBuilder();
+            var chars = new string(InvalidFileNameChars);
+            for(int i = 0, c = name_pattern.Length; i < c; i++)
+            {
+                char chr = name_pattern[i];
+                if (Array.BinarySearch<char>(InvalidFileNameChars, chr) < 0)
+                    name_filter.Append(chr);
+            }
+
+            string name_base = name_filter.ToString();
+
+            // Check name_pattern + extension file name
+
+            string simple_filename = name_base + extension;
+
+            if (!FileSystemEntries(simple_filename).Any()) // File system entries with name_pattern+extension not exists
+                return Combine(simple_filename);
+            
+            // that name already exists
+            
+            int biggest_number = 0;
+
+            string check_pattern = name_base;
+            if (check_pattern.Length > 0 && !check_pattern.EndsWith(" "))
+                check_pattern += " ";
+            check_pattern += "(*)" + extension;
+
+			foreach(string path in Directory.EnumerateFileSystemEntries(FullPath, check_pattern))
+			{
+                string fname = IOPath.GetFileName(path);
+                int left_parenthesis = fname.LastIndexOf('(');
+                int right_parenthesis = fname.LastIndexOf(')');
+                string probably_number = fname.Substring(left_parenthesis + 1, right_parenthesis - left_parenthesis - 1);
+                int coll_number = 0;
+                if (int.TryParse(probably_number, out coll_number))
+                {
+                    if (coll_number >= biggest_number)
+                        biggest_number = coll_number;
+                }
+			}
+
+            return Combine(check_pattern.Replace("*", (biggest_number + 1).ToString()));
+        }
+
+        // System.IO.Path /////////////////////////////////////////////////////////////////////////////////////////////
+
+
+        /// <summary>Gets the root directory information of the specified path.</summary>
+        /// <exception cref="System.ArgumentException">path contains one or more of the invalid characters defined in System.IO.Path.GetInvalidPathChars().-or-
+        /// System.String.Empty was passed to path.</exception>
+        /// <returns>The root directory of path, such as "C:\", or null if path is null, or an empty string if path does not contain root directory information.</returns>
+        public PathInfo PathRoot
+        {
+            get
+            {
+                string path = ((object)_Base != null) ? _Base.FullPath : _Path;
+            
+                if ((object)path == null || path.Length == 0)
+                    return null;
+
+                return new PathInfo(IOPath.GetPathRoot(path));
+            }
+        }
+
+        /// <summary>Gets a value indicating whether the specified path string contains a root.
+        /// true if path contains a root; otherwise, false.</summary>
+        /// <exception cref="System.ArgumentException">path contains one or more of the invalid characters defined in System.IO.Path.GetInvalidPathChars().</exception>
+        public bool PathIsRooted
+        {
+            get
+            {
+                string path = ((object)_Base != null) ? _Base.FullPath : _Path;
+            
+                if ((object)path == null || path.Length == 0)
+                    return false;
+
+                return IOPath.IsPathRooted(path);
+            }
+        }
+        
+
+        // TODO Additional Path methods ///////////////////////////////////////////////////////////////////////////////
+
+        /**/
+
+        // TODO System.IO.File ////////////////////////////////////////////////////////////////////////////////////////
+
+
+        /// <summary>Appends lines to a file, and then closes the file. The file is created if it does not already exist.</summary>
+        /// <param name="contents">The lines to append to the file.</param>
+        /// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains one
+        /// more invalid characters defined by the System.IO.Path.GetInvalidPathChars() method.</exception>
+        /// <exception cref="System.ArgumentNullException">Either path or contents is null.</exception>
+        /// <exception cref="System.IO.DirectoryNotFoundException">path is invalid (for example, it is on an unmapped drive).</exception>
+        /// <exception cref="System.IO.FileNotFoundException">The file specified by path was not found.</exception>
+        /// <exception cref="System.IO.IOException">An I/O error occurred while opening the file.</exception>
+        /// <exception cref="System.IO.PathTooLongException">path exceeds the system-defined maximum length. For example, on Windows-based
+        /// platforms, paths must be less than 248 characters and file names must be less than 260 characters.</exception>
+        /// <exception cref="System.NotSupportedException">path is in an invalid format.</exception>
+        /// <exception cref="System.Security.SecurityException">The caller does not have permission to write to the file.</exception>
+        /// <exception cref="System.UnauthorizedAccessException">path specifies a file that is read-only.-or-This operation is not supported
+        /// on the current platform.-or-path is a directory.-or-The caller does not have the required permission.</exception>
+        public void FileAppendAllLines(IEnumerable<string> contents)
+		{
+			File.AppendAllLines(FullPath, contents);
+		}
+
 		public PathInfo FileCopy(PathInfo destination_file_path, bool overwrite = false)
 		{
-            // Копирвоание файла, целевой путь - файл
-			File.Copy(Path, destination_file_path, overwrite);
+			File.Copy(FullPath, destination_file_path, overwrite);
 			return destination_file_path;
 		}
 
         public PathInfo FileMove(PathInfo destination_file_path)
 		{
             // Перенос файла, целевой путь - файл
-			File.Move(Path, destination_file_path);
+			File.Move(FullPath, destination_file_path);
 			return destination_file_path;
 		}
 
         public void FileDelete()
 		{
-			File.Delete(Path);
+			File.Delete(FullPath);
 		}
 
         /// <summary>(There are no exceptions!) Determines whether the specified file exists.</summary>
@@ -1088,13 +1363,13 @@ namespace System.IO
 
         public FileStream FileOpen(FileMode mode = FileMode.Open, FileAccess access = FileAccess.Read, FileShare share = FileShare.Read)
 		{
-			return File.Open(Path, mode, access, share);
+			return File.Open(FullPath, mode, access, share);
 		}
-    }
 
-    // TODO Additional File methods.
-    public partial class PathInfo
-    {
+        
+        // TODO Additional File methods. //////////////////////////////////////////////////////////////////////////////
+
+
         /// <summary>(The method does not throw any exceptions!)
         /// 
         /// </summary>
@@ -1103,7 +1378,7 @@ namespace System.IO
 		{
             try
             {
-			    File.Delete(Path);
+			    File.Delete(FullPath);
 			    return true;
             }
             catch
@@ -1112,13 +1387,10 @@ namespace System.IO
 
             return false;
 		}
-    }
 
-    // TODO Full mapping of the System.IO.Directory class methods on the PathInfo.Directory* methods.
-    public partial class PathInfo
-    {
-        // TODO
-        // This example. It is also necessary to copy-paste and other Directory.methods..
+        
+        // TODO System.IO.Directory ///////////////////////////////////////////////////////////////////////////////////
+
 
         /// <summary>Creates all directories and subdirectories in the specified path.</summary>
         /// <exception cref="System.IO.IOException">The directory specified by path is a file .-or-The network name is not known.</exception>
@@ -1233,11 +1505,11 @@ namespace System.IO
 		{
             return Directory.GetAccessControl(Path, include_sections);
 		}
-    }
+    
+        
+        // TODO Additional Directory methods. //////////////////////////////////////////////////////////////////////////
 
-    // TODO Additional Directory methods.
-    public partial class PathInfo
-    {
+
         /// <summary>(The method does not throw any exceptions!)
         /// 
         /// </summary>
