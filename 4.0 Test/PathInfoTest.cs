@@ -98,6 +98,20 @@ namespace _4._0_Test
 
             var new_on_temp = new PathInfo(temp_path);
             Assert.AreEqual(new_on_temp, temp_path, "Create from other PathInfo");
+
+            // Crete for special folder
+
+            PathInfo winpath = Environment.SpecialFolder.Windows;
+            Assert.AreEqual(winpath.FullPath, Environment.GetFolderPath(Environment.SpecialFolder.Windows), "implicit windows folder");
+            var winpath2 = new PathInfo(Environment.SpecialFolder.Windows);
+            Assert.AreEqual(winpath2.FullPath, Environment.GetFolderPath(Environment.SpecialFolder.Windows), "implicit windows folder");
+
+
+            var example1 = PathInfo.APPLICATION_DATA_LOCAL / "Kotonoha";
+            PathInfo example2 = Environment.SpecialFolder.LocalApplicationData; 
+                example2 /= "Kotonoha"; // Изврат
+            var example3 = (PathInfo)Environment.SpecialFolder.LocalApplicationData / "Kotonoha";
+            var example4 = PathInfo.APPLICATION_DATA_LOCAL.Combine("Kotonoha");
         }
 
         

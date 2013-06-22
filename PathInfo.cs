@@ -336,6 +336,12 @@ namespace System.IO
         }
 
         [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
+		public static implicit operator PathInfo(Environment.SpecialFolder special_folder)
+        {
+            return new PathInfo(Environment.GetFolderPath(special_folder));
+        }
+
+        [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
 		public static implicit operator string(PathInfo path_info)
 		{
             if ((object)path_info == null)
@@ -648,6 +654,11 @@ namespace System.IO
 
         public PathInfo()
 		{
+		}
+
+        public PathInfo(Environment.SpecialFolder special_folder)
+		{
+            Path = Environment.GetFolderPath(special_folder);
 		}
 
 		public PathInfo(PathInfo path)
