@@ -3,7 +3,7 @@ PathInfo.cs
 
 C# PathInfo.cs module encapsulates a file system path (not shell path!) and wraps Path, File, Directory static class methods from System.IO namespace, provides FileInfo DirectoryInfo objects, has additional properties and methods.
 This is a simple module that you can use in any project, and write code in a functional style.
-===========
+
 
 See examples in the unit test, and in the folder Examples
 
