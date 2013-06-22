@@ -32,7 +32,7 @@ namespace System.IO
 #endregion used_system_xml
     [Serializable]
     [ComVisible(true)]
-	public partial class PathInfo : IEquatable<PathInfo>, IComparable, IComparable<PathInfo>, ISerializable
+    public partial class PathInfo : IEquatable<PathInfo>, IComparable, IComparable<PathInfo>, ISerializable
 #region used_system_xml
 #if used_system_xml
         , IXmlSerializable
@@ -1320,6 +1320,18 @@ namespace System.IO
             return this;
 		}
 
+        public PathInfo FileAppendAllLines(string file_name, IEnumerable<string> contents, Encoding encoding = null)
+		{
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+            string full_path = IOPath.Combine(FullPath, file_name);
+
+			File.AppendAllLines(full_path, contents, encoding);
+
+            return new PathInfo(full_path);
+		}
+
         public PathInfo FileAppendAllText(string contents, Encoding encoding = null)
         {
             if (encoding == null)
@@ -1328,13 +1340,33 @@ namespace System.IO
 			File.AppendAllText(FullPath, contents, encoding);
             return this;
 		}
+
+        public PathInfo FileAppendAllText(string file_name, string contents, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+            string full_path = IOPath.Combine(FullPath, file_name);
+
+			File.AppendAllText(full_path, contents, encoding);
+            
+            return new PathInfo(full_path);
+		}
         
-        public StreamWriter FileAppendTextStreamWriter(string path, Encoding encoding = null)
+        public StreamWriter FileAppendTextStreamWriter(Encoding encoding = null)
         {
             if (encoding == null)
                 encoding = Encoding.UTF8; // default UTF-8
 
             return new StreamWriter(FullPath, true, encoding);
+        }
+
+        public StreamWriter FileAppendTextStreamWriter(string file_name, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+            return new StreamWriter(IOPath.Combine(FullPath, file_name), true, encoding);
         }
 
 		public PathInfo FileCopy(PathInfo destination_file_path, bool overwrite = false)
@@ -1387,6 +1419,28 @@ namespace System.IO
         public StreamWriter FileCreateTextStreamWriter(string file_name, bool overwrite = true, Encoding encoding = null)
         {
             return new PathInfo(IOPath.Combine(FullPath, file_name)) .FileCreateTextStreamWriter(overwrite, encoding);
+        }
+
+        public StreamReader FileCreateTextStreamReader(Encoding encoding = null, bool detectEncodingFromByteOrderMarks = false, int bufferSize = 0)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+            return (bufferSize == 0)
+                ? new StreamReader(FullPath, encoding, detectEncodingFromByteOrderMarks)
+                : new StreamReader(FullPath, encoding, detectEncodingFromByteOrderMarks, bufferSize);
+        }
+
+        public StreamReader FileCreateTextStreamReader(string file_name, Encoding encoding = null, bool detectEncodingFromByteOrderMarks = false, int bufferSize = 0)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+            string full_path =  IOPath.Combine(FullPath, file_name);
+
+            return (bufferSize == 0)
+                ? new StreamReader(full_path, encoding, detectEncodingFromByteOrderMarks)
+                : new StreamReader(full_path, encoding, detectEncodingFromByteOrderMarks, bufferSize);
         }
 
         public PathInfo FileDecrypt(string file_name = null)
@@ -1465,6 +1519,48 @@ namespace System.IO
         {
             return File.GetAccessControl(FullPath, include_sections);
         }
+
+        public FileAttributes FileGetAttributes(string file_name = null)
+        {
+            string full_path = (file_name == null) ? FullPath : IOPath.Combine(FullPath, file_name);
+			return File.GetAttributes(full_path);
+        }
+
+        public DateTime FileGetCreationTime(string file_name = null)
+        {
+            string full_path = (file_name == null) ? FullPath : IOPath.Combine(FullPath, file_name);
+			return File.GetCreationTime(full_path);
+        }
+
+        public DateTime FileGetCreationTimeUtc(string file_name = null)
+        {
+            string full_path = (file_name == null) ? FullPath : IOPath.Combine(FullPath, file_name);
+			return File.GetCreationTimeUtc(full_path);
+        }
+
+        public DateTime FileGetLastAccessTime(string file_name = null)
+        {
+            string full_path = (file_name == null) ? FullPath : IOPath.Combine(FullPath, file_name);
+			return File.GetLastAccessTime(full_path);
+        }
+
+        public DateTime FileGetLastAccessTimeUtc(string file_name = null)
+        {
+            string full_path = (file_name == null) ? FullPath : IOPath.Combine(FullPath, file_name);
+			return File.GetLastAccessTimeUtc(full_path);
+        }
+
+        public DateTime FileGetLastWriteTime(string file_name = null)
+        {
+            string full_path = (file_name == null) ? FullPath : IOPath.Combine(FullPath, file_name);
+			return File.GetLastWriteTime(full_path);
+        }
+
+        public DateTime FileGetLastWriteTimeUtc(string file_name = null)
+        {
+            string full_path = (file_name == null) ? FullPath : IOPath.Combine(FullPath, file_name);
+			return File.GetLastWriteTimeUtc(full_path);
+        }
         
         public PathInfo FileMove(PathInfo destination_file_path)
 		{
@@ -1478,7 +1574,439 @@ namespace System.IO
 			return File.Open(FullPath, mode, access, share);
 		}
 
+        public byte[] FileReadAllBytes(string file_name = null)
+        {
+            string full_path = (file_name == null) ? FullPath : IOPath.Combine(FullPath, file_name);
+			return File.ReadAllBytes(full_path);
+        }
+
+        public string[] FileReadAllLines(Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+			return File.ReadAllLines(FullPath, encoding);
+        }
+
+        public string[] FileReadAllLines(string file_name, Encoding encoding = null)
+        {
+			if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+			return File.ReadAllLines(IOPath.Combine(FullPath, file_name), encoding);
+        }
+
+        public string FileReadAllText(Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+			return File.ReadAllText(FullPath, encoding);
+        }
+
+        public string FileReadAllText(string file_name, Encoding encoding = null)
+        {
+			if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+			return File.ReadAllText(IOPath.Combine(FullPath, file_name), encoding);
+        }
         
+        // On very large files, ReadLines can be more efficient
+
+        public IEnumerable<string> FileReadLines(Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+			return File.ReadLines(FullPath, encoding);
+        }
+
+        public IEnumerable<string> FileReadLines(string file_name, Encoding encoding = null)
+        {
+			if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+			return File.ReadLines(IOPath.Combine(FullPath, file_name), encoding);
+        }
+
+        public PathInfo FileReplace(PathInfo destination_file_path, PathInfo destination_backup_file_path)
+        {
+            File.Replace(FullPath, destination_file_path, destination_backup_file_path);
+            return this;
+        }
+
+        /// <summary>Source, replace file and backup in same directory</summary>
+        /// <param name="file_name"></param>
+        /// <param name="destination_file_name"></param>
+        /// <param name="destination_backup_file_name"></param>
+        /// <returns></returns>
+        public PathInfo FileReplace(string file_name, string destination_file_name, string destination_backup_file_name)
+        {
+            File.Replace(IOPath.Combine(FullPath, file_name), IOPath.Combine(FullPath, destination_file_name), IOPath.Combine(FullPath, destination_backup_file_name));
+            return this;
+        }
+
+        // TODO public static void Replace(string sourceFileName, string destinationFileName, string destinationBackupFileName, bool ignoreMetadataErrors);
+
+        public PathInfo FileSetAccessControl(FileSecurity fileSecurity)
+        {
+            File.SetAccessControl(FullPath, fileSecurity);
+            return this;
+        }
+
+        public PathInfo FileSetAccessControl(string file_name, FileSecurity fileSecurity)
+        {
+            string full_path = IOPath.Combine(FullPath, file_name);
+            File.SetAccessControl(full_path, fileSecurity);
+            return new PathInfo(full_path);
+        }
+
+        public PathInfo FileSetAttributes(FileAttributes file_attributes)
+        {
+            File.SetAttributes(FullPath, file_attributes);
+            return this;
+        }
+
+        public PathInfo FileSetAttributes(string file_name, FileAttributes file_attributes)
+        {
+            string full_path = IOPath.Combine(FullPath, file_name);
+            File.SetAttributes(full_path, file_attributes);
+            return new PathInfo(full_path);
+        }
+
+        public PathInfo FileSetCreationTime(DateTime creationTime)
+        {
+            File.SetCreationTime(FullPath, creationTime);
+            return this;
+        }
+
+        public PathInfo FileSetCreationTime(string file_name, DateTime creationTime)
+        {
+            string full_path = IOPath.Combine(FullPath, file_name);
+            File.SetCreationTime(full_path, creationTime);
+            return new PathInfo(full_path);
+        }
+
+        public PathInfo FileSetCreationTimeUtc(DateTime creationTime)
+        {
+            File.SetCreationTimeUtc(FullPath, creationTime);
+            return this;
+        }
+
+        public PathInfo FileSetCreationTimeUtc(string file_name, DateTime creationTime)
+        {
+            string full_path = IOPath.Combine(FullPath, file_name);
+            File.SetCreationTimeUtc(full_path, creationTime);
+            return new PathInfo(full_path);
+        }
+
+        public PathInfo FileSetLastAccessTime(DateTime creationTime)
+        {
+            File.SetLastAccessTime(FullPath, creationTime);
+            return this;
+        }
+
+        public PathInfo FileSetLastAccessTime(string file_name, DateTime creationTime)
+        {
+            string full_path = IOPath.Combine(FullPath, file_name);
+            File.SetLastAccessTime(full_path, creationTime);
+            return new PathInfo(full_path);
+        }
+
+        public PathInfo FileSetLastAccessTimeUtc(DateTime creationTime)
+        {
+            File.SetLastAccessTimeUtc(FullPath, creationTime);
+            return this;
+        }
+
+        public PathInfo FileSetLastAccessTimeUtc(string file_name, DateTime creationTime)
+        {
+            string full_path = IOPath.Combine(FullPath, file_name);
+            File.SetLastAccessTimeUtc(full_path, creationTime);
+            return new PathInfo(full_path);
+        }
+
+
+        public PathInfo FileSetLastWriteTime(DateTime creationTime)
+        {
+            File.SetLastWriteTime(FullPath, creationTime);
+            return this;
+        }
+
+        public PathInfo FileSetLastWriteTime(string file_name, DateTime creationTime)
+        {
+            string full_path = IOPath.Combine(FullPath, file_name);
+            File.SetLastWriteTime(full_path, creationTime);
+            return new PathInfo(full_path);
+        }
+
+        public PathInfo FileSetLastWriteTimeUtc(DateTime creationTime)
+        {
+            File.SetLastWriteTimeUtc(FullPath, creationTime);
+            return this;
+        }
+
+        public PathInfo FileSetLastWriteTimeUtc(string file_name, DateTime creationTime)
+        {
+            string full_path = IOPath.Combine(FullPath, file_name);
+            File.SetLastWriteTimeUtc(full_path, creationTime);
+            return new PathInfo(full_path);
+        }
+
+        //
+        // Summary:
+        //     Creates a new file, writes the specified byte array to the file, and then
+        //     closes the file. If the target file already exists, it is overwritten.
+        //
+        // Parameters:
+        //   path:
+        //     The file to write to.
+        //
+        //   bytes:
+        //     The bytes to write to the file.
+        //
+        // Exceptions:
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null or the byte array is empty.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters, and file names must be less than 260 characters.
+        //
+        //   System.IO.DirectoryNotFoundException:
+        //     The specified path is invalid (for example, it is on an unmapped drive).
+        //
+        //   System.IO.IOException:
+        //     An I/O error occurred while opening the file.
+        //
+        //   System.UnauthorizedAccessException:
+        //     path specified a file that is read-only.-or- This operation is not supported
+        //     on the current platform.-or- path specified a directory.-or- The caller does
+        //     not have the required permission.
+        //
+        //   System.IO.FileNotFoundException:
+        //     The file specified in path was not found.
+        //
+        //   System.NotSupportedException:
+        //     path is in an invalid format.
+        //
+        //   System.Security.SecurityException:
+        //     The caller does not have the required permission.
+        public PathInfo FileWriteAllBytes(byte[] bytes)
+        {
+            File.WriteAllBytes(FullPath, bytes);
+            return this;
+        }
+
+        public PathInfo FileWriteAllBytes(string file_name, byte[] bytes)
+        {
+            string full_path = IOPath.Combine(FullPath, file_name);
+            File.WriteAllBytes(full_path, bytes);
+            return new PathInfo(full_path);
+        }
+
+        //
+        // Summary:
+        //     Creates a new file, writes a collection of strings to the file, and then
+        //     closes the file.
+        //
+        // Parameters:
+        //   path:
+        //     The file to write to.
+        //
+        //   contents:
+        //     The lines to write to the file.
+        //
+        // Exceptions:
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters defined by the System.IO.Path.GetInvalidPathChars()
+        //     method.
+        //
+        //   System.ArgumentNullException:
+        //     Either path or contents is null.
+        //
+        //   System.IO.DirectoryNotFoundException:
+        //     path is invalid (for example, it is on an unmapped drive).
+        //
+        //   System.IO.FileNotFoundException:
+        //     The file specified by path was not found.
+        //
+        //   System.IO.IOException:
+        //     An I/O error occurred while opening the file.
+        //
+        //   System.IO.PathTooLongException:
+        //     path exceeds the system-defined maximum length. For example, on Windows-based
+        //     platforms, paths must be less than 248 characters and file names must be
+        //     less than 260 characters.
+        //
+        //   System.NotSupportedException:
+        //     path is in an invalid format.
+        //
+        //   System.Security.SecurityException:
+        //     The caller does not have the required permission.
+        //
+        //   System.UnauthorizedAccessException:
+        //     path specifies a file that is read-only.-or-This operation is not supported
+        //     on the current platform.-or-path is a directory.-or-The caller does not have
+        //     the required permission.
+        public PathInfo FileWriteAllLines(IEnumerable<string> contents, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+            File.WriteAllLines(FullPath, contents, encoding);
+            return this;
+        }
+
+        public PathInfo FileWriteAllLines(string file_name, IEnumerable<string> contents, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+            string full_path = IOPath.Combine(FullPath, file_name);
+            File.WriteAllLines(full_path, contents, encoding);
+            return new PathInfo(full_path);
+        }
+
+        //
+        // Summary:
+        //     Creates a new file, write the specified string array to the file, and then
+        //     closes the file.
+        //
+        // Parameters:
+        //   path:
+        //     The file to write to.
+        //
+        //   contents:
+        //     The string array to write to the file.
+        //
+        // Exceptions:
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     Either path or contents is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters, and file names must be less than 260 characters.
+        //
+        //   System.IO.DirectoryNotFoundException:
+        //     The specified path is invalid (for example, it is on an unmapped drive).
+        //
+        //   System.IO.IOException:
+        //     An I/O error occurred while opening the file.
+        //
+        //   System.UnauthorizedAccessException:
+        //     path specified a file that is read-only.-or- This operation is not supported
+        //     on the current platform.-or- path specified a directory.-or- The caller does
+        //     not have the required permission.
+        //
+        //   System.IO.FileNotFoundException:
+        //     The file specified in path was not found.
+        //
+        //   System.NotSupportedException:
+        //     path is in an invalid format.
+        //
+        //   System.Security.SecurityException:
+        //     The caller does not have the required permission.
+        public PathInfo FileWriteAllLines(string[] contents, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+            File.WriteAllLines(FullPath, contents, encoding);
+            return this;
+        }
+
+        public PathInfo FileWriteAllLines(string file_name, string[] contents, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+            string full_path = IOPath.Combine(FullPath, file_name);
+            File.WriteAllLines(full_path, contents, encoding);
+            return new PathInfo(full_path);
+        }
+
+        //
+        // Summary:
+        //     Creates a new file, writes the specified string to the file using the specified
+        //     encoding, and then closes the file. If the target file already exists, it
+        //     is overwritten.
+        //
+        // Parameters:
+        //   path:
+        //     The file to write to.
+        //
+        //   contents:
+        //     The string to write to the file.
+        //
+        //   encoding:
+        //     The encoding to apply to the string.
+        //
+        // Exceptions:
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null or contents is empty.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters, and file names must be less than 260 characters.
+        //
+        //   System.IO.DirectoryNotFoundException:
+        //     The specified path is invalid (for example, it is on an unmapped drive).
+        //
+        //   System.IO.IOException:
+        //     An I/O error occurred while opening the file.
+        //
+        //   System.UnauthorizedAccessException:
+        //     path specified a file that is read-only.-or- This operation is not supported
+        //     on the current platform.-or- path specified a directory.-or- The caller does
+        //     not have the required permission.
+        //
+        //   System.IO.FileNotFoundException:
+        //     The file specified in path was not found.
+        //
+        //   System.NotSupportedException:
+        //     path is in an invalid format.
+        //
+        //   System.Security.SecurityException:
+        //     The caller does not have the required permission.
+        public PathInfo FileWriteAllText(string contents, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+            File.WriteAllText(FullPath, contents, encoding);
+
+            return this;
+        }
+
+        public PathInfo FileWriteAllText(string file_name, string contents, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+            string full_path = IOPath.Combine(FullPath, file_name);
+            File.WriteAllText(full_path, contents, encoding);
+            return new PathInfo(full_path);
+        }
+
+
         // TODO Additional File methods. //////////////////////////////////////////////////////////////////////////////
 
 
