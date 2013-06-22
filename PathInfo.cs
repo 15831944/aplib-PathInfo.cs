@@ -534,7 +534,10 @@ namespace System.IO
         /// <summary>Invariant ignore case equality of paths comparer.</summary>
 		public int CompareTo(PathInfo other)
 		{
-            if ((object)other == null || other.Empty)
+            if ((object)other == null)
+                return 1/*???*/;
+
+            if (other.Empty)
                 return (Empty) ? 0 : 1/*???*/;
             
             if (Empty)

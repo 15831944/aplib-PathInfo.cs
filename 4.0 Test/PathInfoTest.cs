@@ -139,6 +139,7 @@ namespace _4._0_Test
             Assert.IsTrue(      new PathInfo() != path_eq_tes2,     "new PathInfo() != PathInfo null  is true");
             Assert.IsFalse(     new PathInfo() < path_eq_tes2,     "new PathInfo() < PathInfo null  is false");
             Assert.IsTrue(      new PathInfo() > path_eq_tes2,     "new PathInfo() > PathInfo null  is true");
+            Assert.IsTrue(      new PathInfo().CompareTo(path_eq_tes2) > 0, "new PathInfo().CompareTo(PathInfo null) > 0  is true");
 
             // Compare empty PathInfo() object with empty PathInfo() - new PathInfo() == new PathInfo() as two empty paths
 
@@ -148,6 +149,7 @@ namespace _4._0_Test
             Assert.IsFalse(     new PathInfo() != new PathInfo(),   "new PathInfo() != new PathInfo()  is false");
             Assert.IsFalse(     new PathInfo() < new PathInfo(),   "new PathInfo() < new PathInfo()  is false");
             Assert.IsFalse(     new PathInfo() > new PathInfo(),   "new PathInfo() > new PathInfo()  is false");
+            Assert.IsTrue(      new PathInfo().CompareTo(new PathInfo()) == 0, "new PathInfo().CompareTo(new PathInfo()) == 0  is true");
 
             // Verification equivalence checking of two equivalent paths
 
@@ -167,8 +169,10 @@ namespace _4._0_Test
 
             Assert.IsTrue(new PathInfo(@"C:\Z")     >   new PathInfo(@"C:\A"),      @" C:\Z) > C:\A  is true");
             Assert.IsTrue(new PathInfo(@"C:\A")     <   new PathInfo(@"C:\Z"),      @" C:\A) < C:\Z  is true");
+            Assert.IsTrue(new PathInfo(@"C:\Z").CompareTo(new PathInfo(@"C:\A")) > 0, "new PathInfo(C:/Z).CompareTo(new PathInfo(C:/A)) > 0  is true");
             Assert.IsFalse(new PathInfo(@"C:\A\Z")  >   new PathInfo(@"C:\Z\A"),    @" C:\A\Z < C:\Z\A  is false");
             Assert.IsFalse(new PathInfo(@"C:\Z\A")  <   new PathInfo(@"C:\A\Z"),    @" C:\Z\A > C:\A\Z  is false");
+            Assert.IsTrue(new PathInfo(@"C:\A\Z").CompareTo(new PathInfo(@"C:\Z\A")) < 0, "new PathInfo(C:/A/Z).CompareTo(new PathInfo(C:/Z/A)) < 0  is true");
 
             Assert.IsTrue(new PathInfo(@"C:\Z").CompareTo(new PathInfo(@"C:\A\Z")) > 0,      @" 'C:\Z'.CompareTo('C:\A') > 0  is true");
             Assert.IsTrue(new PathInfo(@"C:\B").CompareTo(new PathInfo(@"C:\Z\A")) < 0,      @" 'C:\A'.CompareTo('C:\Z') < 0  is true");
