@@ -1312,6 +1312,10 @@ namespace System.IO
             }
         }
         
+        public PathList PathGetLogicalDrives()
+        {
+            return new PathList(Directory.GetLogicalDrives());
+        }
 
         // TODO Additional Path methods ///////////////////////////////////////////////////////////////////////////////
 
@@ -2097,14 +2101,14 @@ namespace System.IO
             return this;
 		}
 
-        public PathInfo DirectoryCreate(string subdirectory, DirectorySecurity directory_security = null)
+        public PathInfo DirectoryCreate(string subdirectory_name, DirectorySecurity directory_security = null)
 		{
-			return Combine(subdirectory).DirectoryCreate(directory_security);
+			return Combine(subdirectory_name).DirectoryCreate(directory_security);
 		}
 
-        public PathInfo DirectoryCreate(string subdirectory, FileAttributes attributes, DirectorySecurity directory_security = null)
+        public PathInfo DirectoryCreate(string subdirectory_name, FileAttributes attributes, DirectorySecurity directory_security = null)
 		{
-            return Combine(subdirectory).DirectoryCreate(attributes, directory_security);
+            return Combine(subdirectory_name).DirectoryCreate(attributes, directory_security);
 		}
 
         /// <summary>Deletes the specified directory and, if indicated, any subdirectories and files in the directory.</summary>
@@ -2135,9 +2139,9 @@ namespace System.IO
             Directory.Delete(FullPath, recursive);
         }
 
-        public void DirectoryDelete(string subdirectory, bool recursive = false)
+        public void DirectoryDelete(string subdirectory_name, bool recursive = false)
         {
-            Directory.Delete(IOPath.Combine(FullPath, subdirectory), recursive);
+            Directory.Delete(IOPath.Combine(FullPath, subdirectory_name), recursive);
         }
 
         /// <summary>
@@ -2147,9 +2151,10 @@ namespace System.IO
         /// <exception cref="System.UnauthorizedAccessException">??? todo</exception>
         /// <seealso cref="TryDirectoryExists"/>
         /// <returns>true if path refers to an existing directory; otherwise, false.</returns>
-		public bool DirectoryExists(string subdirectory = null)
+		public bool DirectoryExists(string subdirectory_name = null)
 		{
-            return (subdirectory == null) ? Directory.Exists(FullPath) : Directory.Exists(IOPath.Combine(FullPath, subdirectory));
+            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
+            return Directory.Exists(full_path);
 		}
 
         /// <summary>Gets a System.Security.AccessControl.DirectorySecurity object that encapsulates 
@@ -2168,9 +2173,602 @@ namespace System.IO
         /// the access control rules for the file described by the path parameter.</returns>
         public DirectorySecurity DirectoryGetAccessControl(AccessControlSections include_sections = AccessControlSections.All)
 		{
-            return Directory.GetAccessControl(Path, include_sections);
+            return Directory.GetAccessControl(FullPath, include_sections);
 		}
     
+        public DirectorySecurity DirectoryGetAccessControl(string subdirectory_name, AccessControlSections include_sections = AccessControlSections.All)
+		{
+            return Directory.GetAccessControl(IOPath.Combine(FullPath, subdirectory_name), include_sections);
+		}
+
+        //
+        // Summary:
+        //     Gets the creation date and time of a directory.
+        //
+        // Parameters:
+        //   path:
+        //     The path of the directory.
+        //
+        // Returns:
+        //     A System.DateTime structure set to the creation date and time for the specified
+        //     directory. This value is expressed in local time.
+        //
+        // Exceptions:
+        //   System.UnauthorizedAccessException:
+        //     The caller does not have the required permission.
+        //
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters and file names must be less than 260 characters.
+        public DateTime DirectoryGetCreationTime(string subdirectory_name = null)
+        {
+            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
+            return Directory.GetCreationTime(full_path);
+        }
+
+        //
+        // Summary:
+        //     Gets the creation date and time, in Coordinated Universal Time (UTC) format,
+        //     of a directory.
+        //
+        // Parameters:
+        //   path:
+        //     The path of the directory.
+        //
+        // Returns:
+        //     A System.DateTime structure set to the creation date and time for the specified
+        //     directory. This value is expressed in UTC time.
+        //
+        // Exceptions:
+        //   System.UnauthorizedAccessException:
+        //     The caller does not have the required permission.
+        //
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters and file names must be less than 260 characters.
+        public DateTime DirectoryGetCreationTimeUtc(string subdirectory_name = null)
+        {
+            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
+            return Directory.GetCreationTimeUtc(full_path);
+        }
+
+        public PathInfo DirectoryGetCurrentDirectory()
+        {
+            return new PathInfo(Directory.GetCurrentDirectory());
+        }
+
+        //
+        // Summary:
+        //     Returns the date and time the specified file or directory was last accessed.
+        //
+        // Parameters:
+        //   path:
+        //     The file or directory for which to obtain access date and time information.
+        //
+        // Returns:
+        //     A System.DateTime structure set to the date and time the specified file or
+        //     directory was last accessed. This value is expressed in local time.
+        //
+        // Exceptions:
+        //   System.UnauthorizedAccessException:
+        //     The caller does not have the required permission.
+        //
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters and file names must be less than 260 characters.
+        //
+        //   System.NotSupportedException:
+        //     The path parameter is in an invalid format.
+        public DateTime DirectoryGetLastAccessTime(string subdirectory_name = null)
+        {
+            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
+            return Directory.GetLastAccessTime(full_path);
+        }
+
+        //
+        // Summary:
+        //     Returns the date and time, in Coordinated Universal Time (UTC) format, that
+        //     the specified file or directory was last accessed.
+        //
+        // Parameters:
+        //   path:
+        //     The file or directory for which to obtain access date and time information.
+        //
+        // Returns:
+        //     A System.DateTime structure set to the date and time the specified file or
+        //     directory was last accessed. This value is expressed in UTC time.
+        //
+        // Exceptions:
+        //   System.UnauthorizedAccessException:
+        //     The caller does not have the required permission.
+        //
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters and file names must be less than 260 characters.
+        //
+        //   System.NotSupportedException:
+        //     The path parameter is in an invalid format.
+        public DateTime DirectoryGetLastAccessTimeUtc(string subdirectory_name = null)
+        {
+            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
+            return Directory.GetLastAccessTimeUtc(full_path);
+        }
+
+        //
+        // Summary:
+        //     Returns the date and time the specified file or directory was last written
+        //     to.
+        //
+        // Parameters:
+        //   path:
+        //     The file or directory for which to obtain modification date and time information.
+        //
+        // Returns:
+        //     A System.DateTime structure set to the date and time the specified file or
+        //     directory was last written to. This value is expressed in local time.
+        //
+        // Exceptions:
+        //   System.UnauthorizedAccessException:
+        //     The caller does not have the required permission.
+        //
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters and file names must be less than 260 characters.
+        public DateTime DirectoryGetLastWriteTime(string subdirectory_name = null)
+        {
+            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
+            return Directory.GetLastWriteTime(full_path);
+        }
+
+        //
+        // Summary:
+        //     Returns the date and time, in Coordinated Universal Time (UTC) format, that
+        //     the specified file or directory was last written to.
+        //
+        // Parameters:
+        //   path:
+        //     The file or directory for which to obtain modification date and time information.
+        //
+        // Returns:
+        //     A System.DateTime structure set to the date and time the specified file or
+        //     directory was last written to. This value is expressed in UTC time.
+        //
+        // Exceptions:
+        //   System.UnauthorizedAccessException:
+        //     The caller does not have the required permission.
+        //
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters and file names must be less than 260 characters.
+        public DateTime DirectoryGetLastWriteTimeUtc(string subdirectory_name = null)
+        {
+            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
+            return Directory.GetLastWriteTimeUtc(full_path);
+        }
+
+        public PathInfo DirectoryMove(PathInfo destination_directory_path)
+        {
+            Directory.Move(FullPath, destination_directory_path);
+            return destination_directory_path;
+        }
+
+        public PathInfo DirectoryMove(string subdirectory_name, PathInfo destination_directory_path)
+        {
+            string full_path = IOPath.Combine(FullPath, subdirectory_name);
+            Directory.Move(full_path, destination_directory_path);
+            return destination_directory_path;
+        }
+
+        public PathInfo DirectorySetAccessControl(DirectorySecurity directory_security)
+        {
+            Directory.SetAccessControl(FullPath, directory_security);
+            return this;
+        }
+
+        public PathInfo DirectorySetAccessControl(string subdirectory_name, DirectorySecurity directory_security)
+        {
+            string full_path = IOPath.Combine(FullPath, subdirectory_name);
+            Directory.SetAccessControl(full_path, directory_security);
+            return new PathInfo(full_path);
+        }
+
+        //
+        // Summary:
+        //     Sets the creation date and time for the specified file or directory.
+        //
+        // Parameters:
+        //   path:
+        //     The file or directory for which to set the creation date and time information.
+        //
+        //   creationTime:
+        //     A System.DateTime containing the value to set for the creation date and time
+        //     of path. This value is expressed in local time.
+        //
+        // Exceptions:
+        //   System.IO.FileNotFoundException:
+        //     The specified path was not found.
+        //
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters and file names must be less than 260 characters.
+        //
+        //   System.UnauthorizedAccessException:
+        //     The caller does not have the required permission.
+        //
+        //   System.ArgumentOutOfRangeException:
+        //     creationTime specifies a value outside the range of dates or times permitted
+        //     for this operation.
+        //
+        //   System.PlatformNotSupportedException:
+        //     The current operating system is not Windows NT or later.
+        public PathInfo DirectorySetCreationTime(DateTime creation_time)
+        {
+            Directory.SetCreationTime(FullPath, creation_time);
+            return this;
+        }
+
+        public PathInfo DirectorySetCreationTime(string subdirectory_name, DateTime creation_time)
+        {
+            string full_path = IOPath.Combine(FullPath, subdirectory_name);
+            Directory.SetCreationTime(full_path, creation_time);
+            return new PathInfo(full_path);
+        }
+
+        //
+        // Summary:
+        //     Sets the creation date and time, in Coordinated Universal Time (UTC) format,
+        //     for the specified file or directory.
+        //
+        // Parameters:
+        //   path:
+        //     The file or directory for which to set the creation date and time information.
+        //
+        //   creationTimeUtc:
+        //     A System.DateTime containing the value to set for the creation date and time
+        //     of path. This value is expressed in UTC time.
+        //
+        // Exceptions:
+        //   System.IO.FileNotFoundException:
+        //     The specified path was not found.
+        //
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters and file names must be less than 260 characters.
+        //
+        //   System.UnauthorizedAccessException:
+        //     The caller does not have the required permission.
+        //
+        //   System.ArgumentOutOfRangeException:
+        //     creationTime specifies a value outside the range of dates or times permitted
+        //     for this operation.
+        //
+        //   System.PlatformNotSupportedException:
+        //     The current operating system is not Windows NT or later.
+        public PathInfo DirectorySetCreationTimeUtc(DateTime creation_time_Utc)
+        {
+            Directory.SetCreationTimeUtc(FullPath, creation_time_Utc);
+            return this;
+        }
+
+        public PathInfo DirectorySetCreationTimeUtc(string subdirectory_name, DateTime creation_time_Utc)
+        {
+            string full_path = IOPath.Combine(FullPath, subdirectory_name);
+            Directory.SetCreationTimeUtc(full_path, creation_time_Utc);
+            return new PathInfo(full_path);
+        }
+
+        //
+        // Summary:
+        //     Sets the application's current working directory to the specified directory.
+        //
+        // Parameters:
+        //   path:
+        //     The path to which the current working directory is set.
+        //
+        // Exceptions:
+        //   System.IO.IOException:
+        //     An I/O error occurred.
+        //
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters and file names must be less than 260 characters.
+        //
+        //   System.Security.SecurityException:
+        //     The caller does not have the required permission to access unmanaged code.
+        //
+        //   System.IO.FileNotFoundException:
+        //     The specified path was not found.
+        //
+        //   System.IO.DirectoryNotFoundException:
+        //     The specified directory was not found.
+        public PathInfo DirectorySetCurrentDirectory(string subdirectory_name = null)
+        {
+            if (subdirectory_name == null)
+            {
+                Directory.SetCurrentDirectory(FullPath);
+                return this;
+            }
+            else
+            {
+                string full_path = IOPath.Combine(FullPath, subdirectory_name);
+                Directory.SetCurrentDirectory(full_path);
+                return new PathInfo(full_path);
+            }
+        }
+
+        //
+        // Summary:
+        //     Sets the date and time the specified file or directory was last accessed.
+        //
+        // Parameters:
+        //   path:
+        //     The file or directory for which to set the access date and time information.
+        //
+        //   lastAccessTime:
+        //     A System.DateTime containing the value to set for the access date and time
+        //     of path. This value is expressed in local time.
+        //
+        // Exceptions:
+        //   System.IO.FileNotFoundException:
+        //     The specified path was not found.
+        //
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters and file names must be less than 260 characters.
+        //
+        //   System.UnauthorizedAccessException:
+        //     The caller does not have the required permission.
+        //
+        //   System.PlatformNotSupportedException:
+        //     The current operating system is not Windows NT or later.
+        //
+        //   System.ArgumentOutOfRangeException:
+        //     lastAccessTime specifies a value outside the range of dates or times permitted
+        //     for this operation.
+        public PathInfo DirectorySetLastAccessTime(DateTime last_access_time)
+        {
+            Directory.SetLastAccessTime(FullPath, last_access_time);
+            return this;
+        }
+
+        public PathInfo DirectorySetLastAccessTime(string subdirectory_name, DateTime last_access_time)
+        {
+            string full_path = IOPath.Combine(FullPath, subdirectory_name);
+            Directory.SetLastAccessTime(full_path, last_access_time);
+            return new PathInfo(full_path);
+        }
+
+        //
+        // Summary:
+        //     Sets the date and time, in Coordinated Universal Time (UTC) format, that
+        //     the specified file or directory was last accessed.
+        //
+        // Parameters:
+        //   path:
+        //     The file or directory for which to set the access date and time information.
+        //
+        //   lastAccessTimeUtc:
+        //     A System.DateTime containing the value to set for the access date and time
+        //     of path. This value is expressed in UTC time.
+        //
+        // Exceptions:
+        //   System.IO.FileNotFoundException:
+        //     The specified path was not found.
+        //
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters and file names must be less than 260 characters.
+        //
+        //   System.UnauthorizedAccessException:
+        //     The caller does not have the required permission.
+        //
+        //   System.PlatformNotSupportedException:
+        //     The current operating system is not Windows NT or later.
+        //
+        //   System.ArgumentOutOfRangeException:
+        //     lastAccessTimeUtc specifies a value outside the range of dates or times permitted
+        //     for this operation.
+        public PathInfo DirectorySetLastAccessTimeUtc(DateTime last_access_time_Utc)
+        {
+            Directory.SetLastAccessTimeUtc(FullPath, last_access_time_Utc);
+            return this;
+        }
+
+        public PathInfo DirectorySetLastAccessTimeUtc(string subdirectory_name, DateTime last_access_time_Utc)
+        {
+            string full_path = IOPath.Combine(FullPath, subdirectory_name);
+            Directory.SetLastAccessTimeUtc(full_path, last_access_time_Utc);
+            return new PathInfo(full_path);
+        }
+
+        //
+        // Summary:
+        //     Sets the date and time a directory was last written to.
+        //
+        // Parameters:
+        //   path:
+        //     The path of the directory.
+        //
+        //   lastWriteTime:
+        //     The date and time the directory was last written to. This value is expressed
+        //     in local time.
+        //
+        // Exceptions:
+        //   System.IO.FileNotFoundException:
+        //     The specified path was not found.
+        //
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters and file names must be less than 260 characters.
+        //
+        //   System.UnauthorizedAccessException:
+        //     The caller does not have the required permission.
+        //
+        //   System.PlatformNotSupportedException:
+        //     The current operating system is not Windows NT or later.
+        //
+        //   System.ArgumentOutOfRangeException:
+        //     lastWriteTime specifies a value outside the range of dates or times permitted
+        //     for this operation.
+        public PathInfo DirectorySetLastWriteTime(DateTime last_write_time)
+        {
+            Directory.SetLastWriteTime(FullPath, last_write_time);
+            return this;
+        }
+
+        public PathInfo DirectorySetLastWriteTime(string subdirectory_name, DateTime last_write_time)
+        {
+            string full_path = IOPath.Combine(FullPath, subdirectory_name);
+            Directory.SetLastWriteTime(full_path, last_write_time);
+            return new PathInfo(full_path);
+        }
+
+        //
+        // Summary:
+        //     Sets the date and time, in Coordinated Universal Time (UTC) format, that
+        //     a directory was last written to.
+        //
+        // Parameters:
+        //   path:
+        //     The path of the directory.
+        //
+        //   lastWriteTimeUtc:
+        //     The date and time the directory was last written to. This value is expressed
+        //     in UTC time.
+        //
+        // Exceptions:
+        //   System.IO.FileNotFoundException:
+        //     The specified path was not found.
+        //
+        //   System.ArgumentException:
+        //     path is a zero-length string, contains only white space, or contains one
+        //     or more invalid characters as defined by System.IO.Path.InvalidPathChars.
+        //
+        //   System.ArgumentNullException:
+        //     path is null.
+        //
+        //   System.IO.PathTooLongException:
+        //     The specified path, file name, or both exceed the system-defined maximum
+        //     length. For example, on Windows-based platforms, paths must be less than
+        //     248 characters and file names must be less than 260 characters.
+        //
+        //   System.UnauthorizedAccessException:
+        //     The caller does not have the required permission.
+        //
+        //   System.PlatformNotSupportedException:
+        //     The current operating system is not Windows NT or later.
+        //
+        //   System.ArgumentOutOfRangeException:
+        //     lastWriteTimeUtc specifies a value outside the range of dates or times permitted
+        //     for this operation.
+        public PathInfo DirectorySetLastWriteTimeUtc(DateTime last_write_time_Utc)
+        {
+            Directory.SetLastWriteTimeUtc(FullPath, last_write_time_Utc);
+            return this;
+        }
+
+        public PathInfo DirectorySetLastWriteTimeUtc(string subdirectory_name, DateTime last_write_time_Utc)
+        {
+            string full_path = IOPath.Combine(FullPath, subdirectory_name);
+            Directory.SetLastWriteTimeUtc(full_path, last_write_time_Utc);
+            return new PathInfo(full_path);
+        }
         
         // TODO Additional Directory methods. //////////////////////////////////////////////////////////////////////////
 
