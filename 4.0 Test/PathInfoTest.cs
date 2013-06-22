@@ -204,16 +204,16 @@ namespace _4._0_Test
 
                 var regex = new Regex(@"\\[0-9]\.tmp$");
                 var tmp_digital = temp & (path => { return regex.IsMatch(path); });                 // .tmp files files with only numbers in the name.
-                tmp_digital = temp & (path => { return Regex.IsMatch(path, @"\\[0-9]\.tmp$"); });   // A little simple, but more expensive.
-
                 
-                // Linq example
+                // Linq
 
                 var selected = tmp_files .Where(path => path.Name.StartsWith("Z"));
+                selected = tmp_files .Where(path => path.RegexIsMatch("^Z.*$"));
 
 
                 // PathList +- Operator example
-
+                tmp_digital -= "Z.*";
+                tmp_digital -= (path => path.Name.StartsWith("Z"));
                 tmp_digital -= selected;
                 tmp_digital += selected;
 
@@ -300,6 +300,9 @@ namespace _4._0_Test
             Assert.AreEqual(another_instance["section 1", "value 2"], "1-2", "1-2");
 
             ini.TryFileDelete();
+            // or
+            PathInfo.TEMP.TryFileDelete("test.ini");
+            
         }
     }
 }

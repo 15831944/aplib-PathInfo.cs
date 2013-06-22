@@ -47,6 +47,11 @@ namespace System.IO
         public static char   VolumeSeparatorChar       = IOPath.VolumeSeparatorChar;
         public static char[] InvalidFileNameChars      = IOPath.GetInvalidFileNameChars().OrderBy(chr => chr).ToArray();
         public static char[] InvalidPathChars          = IOPath.GetInvalidPathChars().OrderBy(chr => chr).ToArray();
+        public static Func<string,string,bool> MaskIsMatchComparer = ((string text, string mask) =>
+        {
+            // Not implemented yet
+            return true;
+        });
 
         // Basic attributes
 
@@ -1050,15 +1055,14 @@ namespace System.IO
 			    File.Delete(Path);
 		}
         
-
-        public PathInfo NewUniqueName(string name_pattern, string extension)
+        public bool RegexIsMatch(string pattern, Text.RegularExpressions.RegexOptions options = Text.RegularExpressions.RegexOptions.CultureInvariant | Text.RegularExpressions.RegexOptions.IgnoreCase)
         {
-            return null;
+            return System.Text.RegularExpressions.Regex.IsMatch(FullPath, pattern, options);
         }
 
-        public PathList NewUniqueNames(string name_pattern, string extension, int number)
+        public bool RegexFileNameIsMatch(string pattern, Text.RegularExpressions.RegexOptions options = Text.RegularExpressions.RegexOptions.CultureInvariant | Text.RegularExpressions.RegexOptions.IgnoreCase)
         {
-            return null;
+            return System.Text.RegularExpressions.Regex.IsMatch(FileName, pattern, options);
         }
 
         public static string ValidateFileName(string _name)
@@ -1294,6 +1298,7 @@ namespace System.IO
 
         /// <summary>Appends lines to a file, and then closes the file. The file is created if it does not already exist.</summary>
         /// <param name="contents">The lines to append to the file.</param>
+        /// <param name="encoding">The character encoding to use.</param>
         /// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains one
         /// more invalid characters defined by the System.IO.Path.GetInvalidPathChars() method.</exception>
         /// <exception cref="System.ArgumentNullException">Either path or contents is null.</exception>
@@ -1306,10 +1311,31 @@ namespace System.IO
         /// <exception cref="System.Security.SecurityException">The caller does not have permission to write to the file.</exception>
         /// <exception cref="System.UnauthorizedAccessException">path specifies a file that is read-only.-or-This operation is not supported
         /// on the current platform.-or-path is a directory.-or-The caller does not have the required permission.</exception>
-        public void FileAppendAllLines(IEnumerable<string> contents)
+        public PathInfo FileAppendAllLines(IEnumerable<string> contents, Encoding encoding = null)
 		{
-			File.AppendAllLines(FullPath, contents);
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+			File.AppendAllLines(FullPath, contents, encoding);
+            return this;
 		}
+
+        public PathInfo FileAppendAllText(string contents, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+			File.AppendAllText(FullPath, contents, encoding);
+            return this;
+		}
+        
+        public StreamWriter FileAppendTextStreamWriter(string path, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+            return new StreamWriter(FullPath, true, encoding);
+        }
 
 		public PathInfo FileCopy(PathInfo destination_file_path, bool overwrite = false)
 		{
@@ -1317,16 +1343,95 @@ namespace System.IO
 			return destination_file_path;
 		}
 
-        public PathInfo FileMove(PathInfo destination_file_path)
+        public PathInfo FileCopy(string file_name, PathInfo destination_file_path, bool overwrite = false)
 		{
-            // Перенос файла, целевой путь - файл
-			File.Move(FullPath, destination_file_path);
+            string full_path = IOPath.Combine(FullPath, file_name);
+            File.Copy(full_path, destination_file_path, overwrite);
 			return destination_file_path;
 		}
 
-        public void FileDelete()
+        public FileStream FileCreate(string file_name = null)
 		{
-			File.Delete(FullPath);
+			return (file_name == null) ? File.Create(FullPath) : File.Create(IOPath.Combine(FullPath, file_name));
+		}
+
+        public FileStream FileCreate(int buffer_size, FileOptions options, FileSecurity file_security = null)
+		{
+            if (file_security == null)
+			    return File.Create(FullPath, buffer_size, options);
+            else
+                return File.Create(FullPath, buffer_size, options, file_security);
+		}
+
+        public FileStream FileCreate(string file_name, int buffer_size, FileOptions options, FileSecurity file_security = null)
+        {
+            string full_path = (file_name == null) ? FullPath : IOPath.Combine(FullPath, file_name);
+
+            if (file_security == null)
+			    return File.Create(full_path, buffer_size, options);
+            else
+                return File.Create(full_path, buffer_size, options, file_security);
+        }
+
+        public StreamWriter FileCreateTextStreamWriter(bool overwrite = true, Encoding encoding = null)
+        {
+            if (File.Exists(FullPath) && !overwrite)
+                throw new IOException("File already exists!");
+
+            if (encoding == null)
+                encoding = Encoding.UTF8; // default UTF-8
+
+            return new StreamWriter(FullPath, false, encoding);
+        }
+
+        public StreamWriter FileCreateTextStreamWriter(string file_name, bool overwrite = true, Encoding encoding = null)
+        {
+            return new PathInfo(IOPath.Combine(FullPath, file_name)) .FileCreateTextStreamWriter(overwrite, encoding);
+        }
+
+        public PathInfo FileDecrypt(string file_name = null)
+		{
+            if (file_name == null)
+            {
+                File.Decrypt(FullPath);
+                return this;
+            }
+            else
+            {
+                string full_path =  IOPath.Combine(FullPath, file_name);
+			    File.Decrypt(full_path);
+                return new PathInfo(full_path);
+            }
+		}
+
+        public PathInfo FileDelete(string file_name = null)
+		{
+            if (file_name == null)
+            {
+                File.Delete(FullPath);
+                return this;
+            }
+            else
+            {
+                string full_path =  IOPath.Combine(FullPath, file_name);
+			    File.Delete(full_path);
+                return new PathInfo(full_path);
+            }
+		}
+
+        public PathInfo FileEncrypt(string file_name = null)
+		{
+            if (file_name == null)
+            {
+                File.Encrypt(FullPath);
+                return this;
+            }
+            else
+            {
+                string full_path =  IOPath.Combine(FullPath, file_name);
+			    File.Encrypt(full_path);
+                return new PathInfo(full_path);
+            }
 		}
 
         /// <summary>(There are no exceptions!) Determines whether the specified file exists.</summary>
@@ -1337,7 +1442,8 @@ namespace System.IO
         ///     is thrown and the method returns false regardless of the existence of path.</returns>
 		public bool FileExists(string file_name = null)
 		{
-			return (file_name == null) ? File.Exists(FullPath) : File.Exists(IOPath.Combine(FullPath, file_name));
+            string full_path = (file_name == null) ? FullPath : IOPath.Combine(FullPath, file_name);
+			return File.Exists(full_path);
 		}
 
         /// <summary>Gets a System.Security.AccessControl.FileSecurity object that encapsulates
@@ -1359,6 +1465,13 @@ namespace System.IO
         {
             return File.GetAccessControl(FullPath, include_sections);
         }
+        
+        public PathInfo FileMove(PathInfo destination_file_path)
+		{
+            // Перенос файла, целевой путь - файл
+			File.Move(FullPath, destination_file_path);
+			return destination_file_path;
+		}
 
         public FileStream FileOpen(FileMode mode = FileMode.Open, FileAccess access = FileAccess.Read, FileShare share = FileShare.Read)
 		{
@@ -1373,11 +1486,12 @@ namespace System.IO
         /// 
         /// </summary>
         /// <returns></returns>
-        public bool TryFileDelete()
+        public bool TryFileDelete(string file_name = null)
 		{
+            string full_path = (file_name == null) ? FullPath : IOPath.Combine(FullPath, file_name);
             try
             {
-			    File.Delete(FullPath);
+			    File.Delete(full_path);
 			    return true;
             }
             catch
@@ -1638,7 +1752,22 @@ namespace System.IO
             {
                 var path = paths1[i];
 
-                if (!match_comparer(paths1[i]))
+                if (!match_comparer(path))
+                    list.Add(path);
+            }
+            
+            return list;
+        }
+
+        public static PathList operator -(PathList paths1, string search_pattern)
+        {
+            var list  = new PathList(paths1.Count);
+
+            for(int i = 0, c = paths1.Count; i < c; i++)
+            {
+                var path = paths1[i];
+
+                if (!PathInfo.MaskIsMatchComparer(path, search_pattern))
                     list.Add(path);
             }
             
@@ -1648,6 +1777,13 @@ namespace System.IO
         public static implicit operator PathList(string[] paths)
         {
             return new PathList(paths);
+        }
+
+        public static implicit operator PathList(PathInfo path)
+        {
+            var list = new PathList(1);
+            list.Add(path);
+            return list;
         }
 
         public PathList()
