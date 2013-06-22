@@ -4,19 +4,24 @@ PathInfo.cs
 C# PathInfo.cs module encapsulates a file system path (not shell path!) and wraps Path, File, Directory static class methods from System.IO namespace, provides FileInfo DirectoryInfo objects, has additional properties and methods.
 This is a simple module distributed under MIT license, you can use in any project and write code in a functional style.
 
+Nearest projects
+-----------
+FluentPath http://fluentpath.codeplex.com/
+NDepend.Helpers(?) https://github.com/curasystems/externals/tree/master/libs/NDepend.Helpers.FileDirectoryPath.1.0
+
 Features
+-----------
 
 PathInfo
 
-Creating, combining, comparing, enumerating file system paths.
-Special folders, name generators, all file and directory operations.
-/ * ^ & Operators
-
+ Creating, combining, comparing, enumerating file system paths.
+ Special folders, name generators, all file and directory operations.
+ / * ^ & Operators
 
 PathList
 
-+ - Operators
-Bulk file operations
+ + - Operators
+ Bulk file operations
 
 
 See examples in the unit test, and in the folder Examples
