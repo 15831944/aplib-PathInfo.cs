@@ -126,6 +126,8 @@ namespace _4._0_Test
             Assert.AreEqual(    path_eq_tes1,   path_eq_tes2,       "PathInfo null  eq  PathInfo null ");
             Assert.IsTrue(      path_eq_tes1 == path_eq_tes2,       "PathInfo null  ==  PathInfo null  is true");
             Assert.IsFalse(     path_eq_tes1 != path_eq_tes2,       "PathInfo null  !=  PathInfo null  is false");
+            Assert.IsFalse(     path_eq_tes1 < path_eq_tes2,       "PathInfo null  <  PathInfo null  is false");
+            Assert.IsFalse(     path_eq_tes1 > path_eq_tes2,       "PathInfo null  >  PathInfo null  is false");
             
             // Compare empty PathInfo() object with null - new PathInfo() != null
 
@@ -135,6 +137,8 @@ namespace _4._0_Test
             Assert.AreNotEqual( new PathInfo(),   path_eq_tes2,     "new PathInfo()  not eq  PathInfo null");
             Assert.IsFalse(     new PathInfo() == path_eq_tes2,     "new PathInfo() == PathInfo null  is false");
             Assert.IsTrue(      new PathInfo() != path_eq_tes2,     "new PathInfo() != PathInfo null  is true");
+            Assert.IsFalse(     new PathInfo() < path_eq_tes2,     "new PathInfo() < PathInfo null  is false");
+            Assert.IsTrue(      new PathInfo() > path_eq_tes2,     "new PathInfo() > PathInfo null  is true");
 
             // Compare empty PathInfo() object with empty PathInfo() - new PathInfo() == new PathInfo() as two empty paths
 
@@ -142,6 +146,8 @@ namespace _4._0_Test
             Assert.AreEqual(    new PathInfo(),   new PathInfo(),   "new PathInfo()  eq  new PathInfo()");
             Assert.IsTrue(      new PathInfo() == new PathInfo(),   "new PathInfo() == new PathInfo()  is true");
             Assert.IsFalse(     new PathInfo() != new PathInfo(),   "new PathInfo() != new PathInfo()  is false");
+            Assert.IsFalse(     new PathInfo() < new PathInfo(),   "new PathInfo() < new PathInfo()  is false");
+            Assert.IsFalse(     new PathInfo() > new PathInfo(),   "new PathInfo() > new PathInfo()  is false");
 
             // Verification equivalence checking of two equivalent paths
 

@@ -158,7 +158,7 @@ namespace System.IO
         {
             get
             {
-                if (!segments_retrieved)
+                if (!segments_retrieved && (_Path != null || (_Base != null && _Base.FullPath != null)))
                 {
                     _Segments = FullPath.Split(PathSeparators);
                     segments_retrieved = true;
@@ -475,6 +475,11 @@ namespace System.IO
             var segments1 = path1.Segments;
             var segments2 = path2.Segments;
 
+            if (segments2 == null)
+                return (segments1 != null);
+            else if (segments1 == null)
+                return false;
+
             // compare common part of of these two paths
 
             for(int i = 0, c1 = segments1.Length, c2 = segments2.Length; i < c1 && i < c2; i++)
@@ -504,6 +509,11 @@ namespace System.IO
 
             var segments1 = path1.Segments;
             var segments2 = path2.Segments;
+
+            if (segments1 == null)
+                return (segments2 != null);
+            else if (segments2 == null)
+                return false;
 
             // compare common part of of these two paths
 
