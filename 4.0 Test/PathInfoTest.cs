@@ -198,6 +198,17 @@ namespace _4._0_Test
             // Hash code verification
 
             Assert.IsTrue(new PathInfo(@"C:\Z").GetHashCode() == new PathInfo(@"c:\z").GetHashCode(),      @"A hash code case insensitive");
+
+            // Match mask comparer
+            Assert.IsTrue(PathInfo.MatchesMaskComparer("12345.tmp", "*"),      @"12345.tmp  matches mask  *");
+            Assert.IsTrue(PathInfo.MatchesMaskComparer("12345.tmp", "*.tmp"),      @"12345.tmp  matches mask  *.tmp");
+            Assert.IsTrue(PathInfo.MatchesMaskComparer("12345.tmp", "?????.tmp"),      @"12345.tmp  matches mask  ?????.tmp");
+            Assert.IsFalse(PathInfo.MatchesMaskComparer("12345.tmp", "????.tmp"),      @"12345.tmp  not matches  ????.tmp");
+            Assert.IsFalse(PathInfo.MatchesMaskComparer("12345.tmp", "??????.tmp"),      @"12345.tmp  not matches  ??????.tmp");
+            Assert.IsTrue(PathInfo.MatchesMaskComparer("12345.tmp", "123*.tmp"),      @"12345.tmp  matches mask  123*.tmp");
+            Assert.IsFalse(PathInfo.MatchesMaskComparer("12345.tmp", "123.tmp"),      @"12345.tmp  not matches  123.tmp");
+            Assert.IsFalse(PathInfo.MatchesMaskComparer("12345.tmp", "123*4.tmp"),      @"12345.tmp  not matches  123*4.tmp");
+            Assert.IsTrue(PathInfo.MatchesMaskComparer("12345.tmp", "1*"),      @"12345.tmp  matches  1*");
         }
 
 

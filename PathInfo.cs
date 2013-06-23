@@ -47,11 +47,6 @@ namespace System.IO
         public static char   VolumeSeparatorChar       = IOPath.VolumeSeparatorChar;
         public static char[] InvalidFileNameChars      = IOPath.GetInvalidFileNameChars().OrderBy(chr => chr).ToArray();
         public static char[] InvalidPathChars          = IOPath.GetInvalidPathChars().OrderBy(chr => chr).ToArray();
-        public static Func<string,string,bool> MaskIsMatchComparer = ((string text, string mask) =>
-        {
-            // Not implemented yet
-            return true;
-        });
 
         // Basic attributes
 
@@ -1139,6 +1134,72 @@ namespace System.IO
             FileName = new_name;
 		}
         
+        public static bool MatchesMaskComparer(string text, string _mask)
+        {
+            // mask wildcards * and ?
+            
+            if ((object)text == null || text.Length == 0)
+                return false;
+
+            var mask = _mask.ToCharArray();
+            int text_scan = 0; // index of char in 'text' string
+            int count = text.Length;
+
+            for(int i = 0, c = mask.Length - 1; i <= c; i++)
+            {
+                if (text_scan >= count)
+                    return false;
+
+                char maskchar = mask[i];
+                
+                switch(maskchar)
+                {
+                    case '?':
+                        text_scan++; // skip one char in text, match preserved
+                        continue;
+
+                    case '*': // current is '*'
+
+                        if (i == c)
+                            return true; // '*' - is the last char in mask
+
+                        char next_mask_char = mask[i+1];
+                        if (next_mask_char == '*')
+                        {
+                            continue; // skip from current '*' to next '*'
+                        }
+                        else if (next_mask_char == '?')
+                        {
+                            mask[i+1] = '*';
+                            continue; // set '*' to next char and skip to this char
+                        }
+
+                        text_scan = text.IndexOf(next_mask_char, text_scan);
+                        if (text_scan < 0)
+                            return false; // not match
+
+                        continue;
+
+                    default: // any char
+                        if (maskchar == text[text_scan])
+                        {
+                            text_scan++; // skip one char in text, match preserved
+                            continue;
+                        }
+                        else
+                            return false; // not match
+                }
+
+                // search char matches
+
+
+            }
+
+
+            // Not implemented yet
+            return true;
+        }
+
         public bool RegexIsMatch(string pattern, Text.RegularExpressions.RegexOptions options = Text.RegularExpressions.RegexOptions.CultureInvariant | Text.RegularExpressions.RegexOptions.IgnoreCase)
         {
             return System.Text.RegularExpressions.Regex.IsMatch(FullPath, pattern, options);
@@ -3003,7 +3064,7 @@ namespace System.IO
             {
                 var path = paths1[i];
 
-                if (!PathInfo.MaskIsMatchComparer(path, search_pattern))
+                if (!PathInfo.MatchesMaskComparer(path, search_pattern))
                     list.Add(path);
             }
             
