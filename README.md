@@ -2,7 +2,7 @@ PathInfo.cs
 ===========
 
 C# PathInfo.cs module encapsulates a file system path (not shell path!) and wraps Path, File, Directory static class methods from System.IO namespace, provides FileInfo DirectoryInfo objects, has additional properties and methods.
-This is a simple module distributed under MIT license, you can use in any project and write code in a functional style.
+This is a simple module distributed under MIT license, you can use in any project and write code in a little more functional style.
 
 Nearest projects
 -----------
@@ -14,14 +14,14 @@ Features
 
 PathInfo
 
- Creating, combining, comparing, enumerating file system paths.
- Special folders, name generators, all file and directory operations.
- / * ^ & Operators
+- Creating, combining, comparing, enumerating file system paths.
+- Special folders, name generators, all file and directory operations.
+- / * ^ & Operators
 
 PathList
 
- + - Operators
- Bulk file operations
+- + - Operators
+- Bulk file operations
 
 
 See examples in the unit test, and in the folder Examples
@@ -47,7 +47,6 @@ var files = Directory.EnumerateFiles(temp, "*.tmp");
 
 var regex = new Regex(@"\\[0-9]\.tmp$");
 var tmp_digital = temp & (path => { return regex.IsMatch(path); }); // .tmp files files with only numbers in the name.
-tmp_digital = temp & (path => { return Regex.IsMatch(path, @"\\[0-9]\.tmp$"); }); // A little simple, but more expensive.
 
                 
 // Linq example

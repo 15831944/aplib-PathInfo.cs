@@ -80,6 +80,7 @@ namespace System.IO
                     throw new InvalidOperationException("This PathInfo object is immutable!");
 
                 _Base = value;
+                _FullPath = null;
                 _FullPathUpperCase = null;
 
                 _name_retrieved     = false;
@@ -112,6 +113,7 @@ namespace System.IO
                     throw new InvalidOperationException("This PathInfo object is immutable!");
 
                 _Path = value;
+                _FullPath = null;
                 _FullPathUpperCase = null;
 
                 _name_retrieved     = false;
@@ -179,8 +181,19 @@ namespace System.IO
                     {
                         _FullPath = _Base.FullPath;
 
-                        if (_Path != null)
-                            _FullPath += IOPath.DirectorySeparatorChar + _Path;
+                        if ((object)_Path != null)
+                        {
+                            if (_FullPath.Length > 0)
+                            {
+                                char last_char = _FullPath[_FullPath.Length - 1];
+                                if (last_char != DirectorySeparatorChar && last_char != AltDirectorySeparatorChar)
+                                    _FullPath += DirectorySeparatorChar;
+
+                                _FullPath += _Path;
+                            }
+                            else
+                                _FullPath = DirectorySeparatorChar + _Path;
+                        }
                     }
                     else
                         _FullPath = _Path;
@@ -632,10 +645,13 @@ namespace System.IO
 			var builder = new StringBuilder(len);
 			bool opened = false;
 
-			if ((object)_Path != null)
+			if ((object)_Path != null && _Path.Length > 0)
 			{
 				builder.Append(_Path);
-				opened = true;
+                
+                // if path ends with separator then does not add new separator
+                char last_char = builder[builder.Length - 1];
+				opened = (last_char != DirectorySeparatorChar && last_char != AltDirectorySeparatorChar);
 			}
 
 			for (int i = 0, c = segments.Length; i < c; i++)
@@ -656,9 +672,9 @@ namespace System.IO
 		{
 		}
 
-        public PathInfo(Environment.SpecialFolder special_folder)
+        public PathInfo(Environment.SpecialFolder special_folder, Environment.SpecialFolderOption option = Environment.SpecialFolderOption.DoNotVerify)
 		{
-            Path = Environment.GetFolderPath(special_folder);
+            Path = Environment.GetFolderPath(special_folder, option);
 		}
 
 		public PathInfo(PathInfo path)
@@ -1077,6 +1093,62 @@ namespace System.IO
                 Directory.Delete(FullPath, recursive);
             else
 			    File.Delete(Path);
+		}
+
+        public void Rename(string new_name, bool overwrite_destination = false)
+		{
+            if (Immutable)
+                throw new InvalidOperationException("This PathInfo object is immutable");
+
+            if ((object)_Path == null || _Path.Length == 0)
+                throw new InvalidOperationException("Path or relative path is empty");
+
+            string new_path = IOPath.Combine(Parent.FullPath, new_name);
+
+            // overwriting destination
+
+            bool is_file = false;
+            bool is_directory = DirectoryExists();
+            if (!is_directory)
+                is_file = FileExists();
+
+            if (Directory.Exists(new_path))
+            {
+                if (is_file)
+                {
+                    // Rename the file but exists directory
+
+                    throw new InvalidOperationException("There is a directory with the same name!");
+                }
+
+                if (!overwrite_destination)
+                    throw new InvalidOperationException("Directory already exists!");
+
+                Directory.Delete(new_path, true);
+            }
+            else if (File.Exists(new_path))
+            {
+                if (is_directory)
+                {
+                    // Rename the directory but exists file
+
+                    throw new InvalidOperationException("There is a file with the same name!");
+                }
+
+                if (!overwrite_destination)
+                    throw new InvalidOperationException("File already exists!");
+
+                File.Delete(new_path);
+            }
+
+            if (Directory.Exists(FullPath))
+                Directory.Move(FullPath, new_path);
+            else
+			    File.Move(FullPath, new_path);
+
+            // renaming succeeded, now rename this PathInfo object:
+
+            FileName = new_name;
 		}
         
         public bool RegexIsMatch(string pattern, Text.RegularExpressions.RegexOptions options = Text.RegularExpressions.RegexOptions.CultureInvariant | Text.RegularExpressions.RegexOptions.IgnoreCase)

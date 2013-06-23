@@ -107,11 +107,8 @@ namespace _4._0_Test
             Assert.AreEqual(winpath2.FullPath, Environment.GetFolderPath(Environment.SpecialFolder.Windows), "implicit windows folder");
 
 
-            var example1 = PathInfo.APPLICATION_DATA_LOCAL / "Kotonoha";
-            PathInfo example2 = Environment.SpecialFolder.LocalApplicationData; 
-                example2 /= "Kotonoha"; // Изврат
-            var example3 = (PathInfo)Environment.SpecialFolder.LocalApplicationData / "Kotonoha";
-            var example4 = PathInfo.APPLICATION_DATA_LOCAL.Combine("Kotonoha");
+
+            
         }
 
         
@@ -165,53 +162,48 @@ namespace _4._0_Test
             Assert.IsFalse(     new PathInfo() > new PathInfo(),   "new PathInfo() > new PathInfo()  is false");
             Assert.IsTrue(      new PathInfo().CompareTo(new PathInfo()) == 0, "new PathInfo().CompareTo(new PathInfo()) == 0  is true");
 
-            // Verification equivalence checking of two equivalent paths
+            // Verify the equivalence checking of two equivalent paths
 
             var temp_path_string = IOPath.GetTempPath();
             Assert.AreEqual(new PathInfo(temp_path_string), new PathInfo(new PathInfo(temp_path_string)), "new PathInfo(GetTempPath())  eq  new PathInfo(GetTempPath())");
             Assert.IsTrue(new PathInfo(temp_path_string) == new PathInfo(new PathInfo(temp_path_string)), "new PathInfo(GetTempPath()) == new PathInfo(GetTempPath())  is true");
             Assert.IsFalse(new PathInfo(temp_path_string) != new PathInfo(new PathInfo(temp_path_string)), "new PathInfo(GetTempPath()) != new PathInfo(GetTempPath())  is false");
 
-            // Verification equivalence checking of two inequivalent paths
+            // Verify the equivalence checking of two inequivalent paths
 
             var temp_file_string = IOPath.GetTempFileName();
             Assert.AreNotEqual(new PathInfo(temp_path_string), new PathInfo(new PathInfo(temp_file_string)), "new PathInfo(GetTempPath())  not eq  new PathInfo(GetTempFileName())");
             Assert.IsFalse(new PathInfo(temp_path_string) == new PathInfo(new PathInfo(temp_file_string)), "new PathInfo(GetTempPath()) == new PathInfo(GetTempFileName())  is false");
             Assert.IsTrue(new PathInfo(temp_path_string) != new PathInfo(new PathInfo(temp_file_string)), "new PathInfo(GetTempPath()) != new PathInfo(GetTempFileName())  is true");
 
-            // Verification comparison of two paths
+            // Verify the comparison of two paths
 
-            Assert.IsTrue(new PathInfo(@"C:\Z")     >   new PathInfo(@"C:\A"),      @" C:\Z) > C:\A  is true");
-            Assert.IsTrue(new PathInfo(@"C:\A")     <   new PathInfo(@"C:\Z"),      @" C:\A) < C:\Z  is true");
-            Assert.IsTrue(new PathInfo(@"C:\Z").CompareTo(new PathInfo(@"C:\A")) > 0, "new PathInfo(C:/Z).CompareTo(new PathInfo(C:/A)) > 0  is true");
-            Assert.IsFalse(new PathInfo(@"C:\A\Z")  >   new PathInfo(@"C:\Z\A"),    @" C:\A\Z < C:\Z\A  is false");
-            Assert.IsFalse(new PathInfo(@"C:\Z\A")  <   new PathInfo(@"C:\A\Z"),    @" C:\Z\A > C:\A\Z  is false");
-            Assert.IsTrue(new PathInfo(@"C:\A\Z").CompareTo(new PathInfo(@"C:\Z\A")) < 0, "new PathInfo(C:/A/Z).CompareTo(new PathInfo(C:/Z/A)) < 0  is true");
-
-            Assert.IsTrue(new PathInfo(@"C:\Z").CompareTo(new PathInfo(@"C:\A\Z")) > 0,      @" 'C:\Z'.CompareTo('C:\A') > 0  is true");
-            Assert.IsTrue(new PathInfo(@"C:\B").CompareTo(new PathInfo(@"C:\Z\A")) < 0,      @" 'C:\A'.CompareTo('C:\Z') < 0  is true");
+            Assert.IsTrue(new PathInfo(@"C:\Z")     >   new PathInfo(@"C:\A"),              @" C:\Z) > C:\A  is true");
+            Assert.IsTrue(new PathInfo(@"C:\A")     <   new PathInfo(@"C:\Z"),              @" C:\A) < C:\Z  is true");
+            Assert.IsTrue(new PathInfo(@"C:\Z")     .CompareTo(new PathInfo(@"C:\A")) > 0,      "new PathInfo(C:/Z).CompareTo(new PathInfo(C:/A)) > 0  is true");
+            Assert.IsFalse(new PathInfo(@"C:\A\Z")  >   new PathInfo(@"C:\Z\A"),            @" C:\A\Z < C:\Z\A  is false");
+            Assert.IsFalse(new PathInfo(@"C:\Z\A")  <   new PathInfo(@"C:\A\Z"),            @" C:\Z\A > C:\A\Z  is false");
+            Assert.IsTrue(new PathInfo(@"C:\A\Z")   .CompareTo(new PathInfo(@"C:\Z\A")) < 0,    "new PathInfo(C:/A/Z).CompareTo(new PathInfo(C:/Z/A)) < 0  is true");
+            Assert.IsTrue(new PathInfo(@"C:\Z")     .CompareTo(new PathInfo(@"C:\A\Z")) > 0,    @" 'C:\Z'.CompareTo('C:\A') > 0  is true");
+            Assert.IsTrue(new PathInfo(@"C:\B")     .CompareTo(new PathInfo(@"C:\Z\A")) < 0,    @" 'C:\A'.CompareTo('C:\Z') < 0  is true");
             
 
             // Combine operator
 
-            var temp_path = new PathInfo(temp_path_string);
+            var temp_path = new PathInfo(IOPath.GetTempPath());
             var some_file = temp_path / "some_file_name.txt";
-            Assert.AreEqual(some_file, temp_path_string + Path.DirectorySeparatorChar + "some_file_name.txt", "Combine / operator");
-        }
+            Assert.AreEqual(some_file, IOPath.Combine(temp_path_string, "some_file_name.txt"), "Combine / operator");
 
-        [TestMethod()]
-        public void HashCode()
-        {
+            // Hash code verification
+
             Assert.IsTrue(new PathInfo(@"C:\Z").GetHashCode() == new PathInfo(@"c:\z").GetHashCode(),      @"A hash code case insensitive");
         }
+
 
         [TestMethod()]
         public void Enumerable()
         {
             PathInfo temp = Path.GetTempPath();
-            // var temp = new PathInfo(@"C:\TEMP");
-            // var temp = new PathInfo(@"C:\TEMP", subdir, filename);
-            // var tmp = some_path.Combine("some path segment");
 
             try
             {
@@ -327,6 +319,64 @@ namespace _4._0_Test
             // or
             PathInfo.TEMP.TryFileDelete("test.ini");
             
+        }
+
+        [TestMethod()]
+        public void FileOperations()
+        {
+            var file1 = PathInfo.TEMP / "file1.txt";
+            var file2 = PathInfo.TEMP / "file2.txt";
+            file1.FileWriteAllText("111");
+            file2.FileWriteAllText("222");
+            try
+            {   
+                file1.Rename("file2.txt");
+                Assert.Fail("Bad if you run this line");
+            }
+            catch
+            {
+            }
+            file1.Rename("file2.txt", true);
+
+            Assert.AreEqual(file1,   PathInfo.TEMP / "file2.txt",                 "verify file renaming");
+            Assert.AreEqual((PathInfo.TEMP / "file2.txt").FileReadAllText(), "111",       "verify FileWriteAllText FileReadAllText");
+
+        }
+
+        [TestMethod()]
+        public void ReadMeExamples()
+        {
+            // Creating
+
+            PathInfo path = Path.GetTempPath();                                         // by assigning the path
+            path = new PathInfo(@"C:\TEMP", "subdir", "filename.txt");                  // from segments
+            path = PathInfo.Create(@"C:\TEMP\subdir", "filename.txt");                  // static factory
+            path = new PathInfo(@"C:\TEMP\subdir\filename.txt");                        // from full path
+
+            // Special folders
+
+            path = PathInfo.APPLICATION_DATA_LOCAL / "some app folder";
+            var temp_path = PathInfo.TEMP;
+            PathInfo app_local = Environment.SpecialFolder.LocalApplicationData;        // by assigning the Environment.SpecialFolder value
+            app_local = (PathInfo)Environment.SpecialFolder.LocalApplicationData / "some app folder";
+
+            // Combining
+
+            var some_path = path.Parent.Combine("some path segment", "filename.txt");
+            some_path = path.Parent / "some path segment" / "filename.txt";             // "/" Operator 
+
+            // Enumerating
+
+            var tmp_files = temp_path & "*.tmp";                                        // Enumerate .tmp files in temp directory
+
+            var regex = new Regex(@"\\[0-9]\.tmp$");
+            var tmp_digital = temp_path & (pth => { return regex.IsMatch(pth); });      // Enumerate by match comparer
+                
+            // Linq
+
+            var selected = tmp_files .Where(pth => pth.Name.StartsWith("Z"));
+            selected = tmp_files .Where(pth => pth.RegexIsMatch("^Z.*$"));
+
         }
     }
 }
