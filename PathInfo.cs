@@ -554,13 +554,13 @@ namespace System.IO
 		public int CompareTo(PathInfo other)
 		{
             if ((object)other == null)
-                return 1/*???*/;
+                return 1;
 
             if (other.Empty)
-                return (Empty) ? 0 : 1/*???*/;
+                return (Empty) ? 0 : 1;
             
             if (Empty)
-                return -1/*???*/;
+                return -1;
 
             // Compare path as string is incorrect, compare segments of path separately at each level of the hierarchy is the right way
 
@@ -587,26 +587,16 @@ namespace System.IO
         /// </summary>
 		public int CompareTo(object obj)
 		{
-			// Сравнивать нужно последовательно по фрагментам пути?
-			// Пока так:
-
             if ((object)obj == null)
-                return (Empty) ? 0 : 1/*???*/;
-            
-            if (Empty)
-                return -1/*???*/;
+                return 1;
 
 			var other = obj as PathInfo;
             if ((object)other != null)
+            {
                 return CompareTo(other);
+            }
 
-            // You can compare PathInfo to strings, but will turn a significant decrease in performance!
-
-            var other_path_string = obj as string;
-            if ((object)other != null)
-                return CompareTo(new PathInfo(other_path_string));
-            
-			return 0;
+            throw new ArgumentException();
 		}
 
         // Constructors

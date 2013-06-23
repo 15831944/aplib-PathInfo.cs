@@ -1,9 +1,11 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Runtime.InteropServices;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Text;
+using System.Collections;
 using System.Collections.Generic;
 using System.Xml.Serialization;using System.Runtime.Serialization;using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.AccessControl;
@@ -187,7 +189,6 @@ namespace _4._0_Test
             Assert.IsTrue(new PathInfo(@"C:\Z")     .CompareTo(new PathInfo(@"C:\A\Z")) > 0,    @" 'C:\Z'.CompareTo('C:\A') > 0  is true");
             Assert.IsTrue(new PathInfo(@"C:\B")     .CompareTo(new PathInfo(@"C:\Z\A")) < 0,    @" 'C:\A'.CompareTo('C:\Z') < 0  is true");
             
-
             // Combine operator
 
             var temp_path = new PathInfo(IOPath.GetTempPath());
@@ -320,6 +321,20 @@ namespace _4._0_Test
             PathInfo.TEMP.TryFileDelete("test.ini");
             
         }
+
+
+        public interface IMyCollection : IEnumerable<PathInfoTest>
+        {
+          // Строка 1
+          new IEnumerator<PathInfoTest> GetEnumerator(); // Этот метод нужен для .NET
+
+          // Строка 2
+          //IEnumerator           IEnumerable.GetEnumerator(); // А этот метод нужен для COM CRW
+        }
+
+        //public class MyCollectionImpl : IMyCollection
+        //{
+        //}
 
         [TestMethod()]
         public void FileOperations()
