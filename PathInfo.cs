@@ -592,9 +592,7 @@ namespace System.IO
 
 			var other = obj as PathInfo;
             if ((object)other != null)
-            {
                 return CompareTo(other);
-            }
 
             throw new ArgumentException();
 		}
@@ -2213,10 +2211,14 @@ namespace System.IO
         /// <exception cref="System.UnauthorizedAccessException">??? todo</exception>
         /// <seealso cref="TryDirectoryExists"/>
         /// <returns>true if path refers to an existing directory; otherwise, false.</returns>
-		public bool DirectoryExists(string subdirectory_name = null)
+		public bool DirectoryExists()
 		{
-            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
-            return Directory.Exists(full_path);
+            return Directory.Exists(FullPath);
+		}
+
+        public bool DirectoryExists(string subdirectory_name)
+		{
+            return Directory.Exists(IOPath.Combine(FullPath, subdirectory_name));
 		}
 
         /// <summary>Gets a System.Security.AccessControl.DirectorySecurity object that encapsulates 
@@ -2270,10 +2272,14 @@ namespace System.IO
         //     The specified path, file name, or both exceed the system-defined maximum
         //     length. For example, on Windows-based platforms, paths must be less than
         //     248 characters and file names must be less than 260 characters.
-        public DateTime DirectoryGetCreationTime(string subdirectory_name = null)
+        public DateTime DirectoryGetCreationTime()
         {
-            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
-            return Directory.GetCreationTime(full_path);
+            return Directory.GetCreationTime(FullPath);
+        }
+
+        public DateTime DirectoryGetCreationTime(string subdirectory_name)
+        {
+            return Directory.GetCreationTime(IOPath.Combine(FullPath, subdirectory_name));
         }
 
         //
@@ -2304,10 +2310,14 @@ namespace System.IO
         //     The specified path, file name, or both exceed the system-defined maximum
         //     length. For example, on Windows-based platforms, paths must be less than
         //     248 characters and file names must be less than 260 characters.
-        public DateTime DirectoryGetCreationTimeUtc(string subdirectory_name = null)
+        public DateTime DirectoryGetCreationTimeUtc()
         {
-            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
-            return Directory.GetCreationTimeUtc(full_path);
+            return Directory.GetCreationTimeUtc(FullPath);
+        }
+
+        public DateTime DirectoryGetCreationTimeUtc(string subdirectory_name)
+        {
+            return Directory.GetCreationTimeUtc(IOPath.Combine(FullPath, subdirectory_name));
         }
 
         public PathInfo DirectoryGetCurrentDirectory()
@@ -2345,10 +2355,14 @@ namespace System.IO
         //
         //   System.NotSupportedException:
         //     The path parameter is in an invalid format.
-        public DateTime DirectoryGetLastAccessTime(string subdirectory_name = null)
+        public DateTime DirectoryGetLastAccessTime()
         {
-            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
-            return Directory.GetLastAccessTime(full_path);
+            return Directory.GetLastAccessTime(FullPath);
+        }
+
+        public DateTime DirectoryGetLastAccessTime(string subdirectory_name)
+        {
+            return Directory.GetLastAccessTime(IOPath.Combine(FullPath, subdirectory_name));
         }
 
         //
@@ -2382,10 +2396,14 @@ namespace System.IO
         //
         //   System.NotSupportedException:
         //     The path parameter is in an invalid format.
-        public DateTime DirectoryGetLastAccessTimeUtc(string subdirectory_name = null)
+        public DateTime DirectoryGetLastAccessTimeUtc()
         {
-            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
-            return Directory.GetLastAccessTimeUtc(full_path);
+            return Directory.GetLastAccessTimeUtc(FullPath);
+        }
+
+        public DateTime DirectoryGetLastAccessTimeUtc(string subdirectory_name)
+        {
+            return Directory.GetLastAccessTimeUtc(IOPath.Combine(FullPath, subdirectory_name));
         }
 
         //
@@ -2416,10 +2434,14 @@ namespace System.IO
         //     The specified path, file name, or both exceed the system-defined maximum
         //     length. For example, on Windows-based platforms, paths must be less than
         //     248 characters and file names must be less than 260 characters.
-        public DateTime DirectoryGetLastWriteTime(string subdirectory_name = null)
+        public DateTime DirectoryGetLastWriteTime()
         {
-            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
-            return Directory.GetLastWriteTime(full_path);
+            return Directory.GetLastWriteTime(FullPath);
+        }
+
+        public DateTime DirectoryGetLastWriteTime(string subdirectory_name)
+        {
+            return Directory.GetLastWriteTime(IOPath.Combine(FullPath, subdirectory_name));
         }
 
         //
@@ -2450,10 +2472,14 @@ namespace System.IO
         //     The specified path, file name, or both exceed the system-defined maximum
         //     length. For example, on Windows-based platforms, paths must be less than
         //     248 characters and file names must be less than 260 characters.
-        public DateTime DirectoryGetLastWriteTimeUtc(string subdirectory_name = null)
+        public DateTime DirectoryGetLastWriteTimeUtc()
         {
-            string full_path = (subdirectory_name == null) ? FullPath : IOPath.Combine(FullPath, subdirectory_name);
-            return Directory.GetLastWriteTimeUtc(full_path);
+            return Directory.GetLastWriteTimeUtc(FullPath);
+        }
+
+        public DateTime DirectoryGetLastWriteTimeUtc(string subdirectory_name)
+        {
+            return Directory.GetLastWriteTimeUtc(IOPath.Combine(FullPath, subdirectory_name));
         }
 
         public PathInfo DirectoryMove(PathInfo destination_directory_path)
@@ -2615,19 +2641,17 @@ namespace System.IO
         //
         //   System.IO.DirectoryNotFoundException:
         //     The specified directory was not found.
-        public PathInfo DirectorySetCurrentDirectory(string subdirectory_name = null)
+        public PathInfo DirectorySetCurrentDirectory()
         {
-            if (subdirectory_name == null)
-            {
-                Directory.SetCurrentDirectory(FullPath);
-                return this;
-            }
-            else
-            {
-                string full_path = IOPath.Combine(FullPath, subdirectory_name);
-                Directory.SetCurrentDirectory(full_path);
-                return new PathInfo(full_path);
-            }
+            Directory.SetCurrentDirectory(FullPath);
+            return this;
+        }
+
+        public PathInfo DirectorySetCurrentDirectory(string subdirectory_name)
+        {
+            string full_path = IOPath.Combine(FullPath, subdirectory_name);
+            Directory.SetCurrentDirectory(full_path);
+            return new PathInfo(full_path);
         }
 
         //
@@ -3032,9 +3056,6 @@ namespace System.IO
     }
 
     #region    ------------------ Bulk Pattern Origin ------------------
-
-    /* Copyright © 2012 Vadim Baklanov (Ad), distributed under the MIT License
-     * When copying, use or create derivative works do not remove or modify this attribution, and this license text.*/
 
     /* Основная суть этого паттерна получить групповой результат выполнения операции над перечислимым множеством для последующей обработки ошибок или успехов пакетной операцией.
      * Паттерн еще не закончен в том смысле, что нужно еще добавить устоявшийся способ группировки результатов множества операций над одним или несколькими перечислимыми множествами.
