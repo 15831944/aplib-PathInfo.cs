@@ -11,6 +11,7 @@ using System.Xml.Serialization;using System.Runtime.Serialization;using System.R
 using System.Security.AccessControl;
 using IOPath = System.IO.Path;
 
+
 /* Copyright © 2012 Vadim Baklanov (Ad), distributed under the MIT License
  * When copying, use or create derivative works do not remove or modify this attribution, and this license text.*/
 
@@ -199,16 +200,25 @@ namespace _4._0_Test
 
             Assert.IsTrue(new PathInfo(@"C:\Z").GetHashCode() == new PathInfo(@"c:\z").GetHashCode(),      @"A hash code case insensitive");
 
-            // Match mask comparer
-            Assert.IsTrue(PathInfo.MatchesMaskComparer("12345.tmp", "*"),      @"12345.tmp  matches mask  *");
-            Assert.IsTrue(PathInfo.MatchesMaskComparer("12345.tmp", "*.tmp"),      @"12345.tmp  matches mask  *.tmp");
-            Assert.IsTrue(PathInfo.MatchesMaskComparer("12345.tmp", "?????.tmp"),      @"12345.tmp  matches mask  ?????.tmp");
-            Assert.IsFalse(PathInfo.MatchesMaskComparer("12345.tmp", "????.tmp"),      @"12345.tmp  not matches  ????.tmp");
-            Assert.IsFalse(PathInfo.MatchesMaskComparer("12345.tmp", "??????.tmp"),      @"12345.tmp  not matches  ??????.tmp");
-            Assert.IsTrue(PathInfo.MatchesMaskComparer("12345.tmp", "123*.tmp"),      @"12345.tmp  matches mask  123*.tmp");
-            Assert.IsFalse(PathInfo.MatchesMaskComparer("12345.tmp", "123.tmp"),      @"12345.tmp  not matches  123.tmp");
-            Assert.IsFalse(PathInfo.MatchesMaskComparer("12345.tmp", "123*4.tmp"),      @"12345.tmp  not matches  123*4.tmp");
-            Assert.IsTrue(PathInfo.MatchesMaskComparer("12345.tmp", "1*"),      @"12345.tmp  matches  1*");
+            var rnd = new Random(Environment.TickCount);
+            for(int i = 0; i < 20000; i++)
+            {
+                var name = new PathInfo().GenerateRandom(null, null, false).FileName;
+                var mask = new StringBuilder(new PathInfo().GenerateRandom(null, null, false).FileName);
+                for(int k = 0; k < 8; k++)
+                    mask[rnd.Next(mask.Length)] = name[rnd.Next(name.Length)];
+                for(int k = 0; k < 5; k++)
+                {
+                    mask[rnd.Next(mask.Length)] = '?';
+                    mask[rnd.Next(mask.Length)] = '*';
+                }
+                var stringmask = mask.ToString().Replace("***","*").Replace("**","*");
+                var regex_pattern =  mask.Replace("*", ".*").Replace("?", ".").Insert(0, '^').Append('$').ToString();
+
+                if (Regex.IsMatch(name, regex_pattern, System.Text.RegularExpressions.RegexOptions.CultureInvariant | System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+                != PathInfo.MatchesMaskComparer(name, stringmask))
+                    Assert.Fail(string.Format("{0} and {1}", name, stringmask));
+            }
         }
 
 
@@ -252,7 +262,7 @@ namespace _4._0_Test
                 {
                     // Rename .tmp files to .tmp.bak
                     (temp & "*.tmp")
-                        .Bulk(path => { path.FileMove(path + ".bak"); });
+                        .Bulk(path => { path.FileMove(path + ".bak", true); });
                 }
                 catch (BulkException<PathInfo> e)
                 {
@@ -333,20 +343,6 @@ namespace _4._0_Test
             
         }
 
-
-        public interface IMyCollection : IEnumerable<PathInfoTest>
-        {
-          // Строка 1
-          new IEnumerator<PathInfoTest> GetEnumerator(); // Этот метод нужен для .NET
-
-          // Строка 2
-          //IEnumerator           IEnumerable.GetEnumerator(); // А этот метод нужен для COM CRW
-        }
-
-        //public class MyCollectionImpl : IMyCollection
-        //{
-        //}
-
         [TestMethod()]
         public void FileOperations()
         {
@@ -357,7 +353,7 @@ namespace _4._0_Test
             try
             {   
                 file1.Rename("file2.txt");
-                Assert.Fail("Bad if you run this line");
+                Assert.Fail("Bad if you run this line, must be exception thrown");
             }
             catch
             {

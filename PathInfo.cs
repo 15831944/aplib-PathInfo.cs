@@ -1148,40 +1148,61 @@ namespace System.IO
             for(int i = 0, c = mask.Length - 1; i <= c; i++)
             {
                 if (text_scan >= count)
-                    return false;
+                {
+                    // text is out and if in this position mask char is not '*' then fail
+                    return (mask[i] == '*' && i == c);
+                }
 
                 char maskchar = mask[i];
                 
                 switch(maskchar)
                 {
-                    case '?':
+                    case '?': // current mask char is '?'
+
                         text_scan++; // skip one char in text, match preserved
                         continue;
 
-                    case '*': // current is '*'
+                    case '*': // current mask char is '*'
 
                         if (i == c)
                             return true; // '*' - is the last char in mask
 
+
                         char next_mask_char = mask[i+1];
-                        if (next_mask_char == '*')
+                        if (next_mask_char == '*' || next_mask_char == '?')
                         {
-                            continue; // skip from current '*' to next '*'
-                        }
-                        else if (next_mask_char == '?')
-                        {
-                            mask[i+1] = '*';
-                            continue; // set '*' to next char and skip to this char
+                            // invalid pattern, have it checked by Regex
+                            return System.Text.RegularExpressions.Regex.IsMatch(
+                                text.Substring(text_scan), 
+                                "^"  + _mask.Substring(i).Replace("*", ".*").Replace("?",".") + "$",
+                                Text.RegularExpressions.RegexOptions.CultureInvariant | Text.RegularExpressions.RegexOptions.IgnoreCase);
                         }
 
-                        text_scan = text.IndexOf(next_mask_char, text_scan);
+                        string next_mask_char_string = next_mask_char.ToString();
+                        text_scan = text.IndexOf(next_mask_char_string, text_scan, StringComparison.InvariantCultureIgnoreCase);
+                        
                         if (text_scan < 0)
                             return false; // not match
+                        
+                        if (text.IndexOf(next_mask_char_string, text_scan + 1, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                        {
+                            // found regularity
+                            // TODO I will complete later...
+
+                            // have it checked by Regex
+                            return System.Text.RegularExpressions.Regex.IsMatch(
+                                text.Substring(text_scan), 
+                                "^"  + _mask.Substring(i).Replace("*", ".*").Replace("?",".") + "$",
+                                Text.RegularExpressions.RegexOptions.CultureInvariant | Text.RegularExpressions.RegexOptions.IgnoreCase);
+                        }
+
+                        text_scan++; i++; // skip to next mask char and skip match char in text
 
                         continue;
 
-                    default: // any char
-                        if (maskchar == text[text_scan])
+                    default: // any other char
+
+                        if (char.ToUpperInvariant(maskchar) == char.ToUpperInvariant(text[text_scan]))
                         {
                             text_scan++; // skip one char in text, match preserved
                             continue;
@@ -1189,15 +1210,9 @@ namespace System.IO
                         else
                             return false; // not match
                 }
-
-                // search char matches
-
-
             }
 
-
-            // Not implemented yet
-            return true;
+            return (text_scan == count);
         }
 
         public bool RegexIsMatch(string pattern, Text.RegularExpressions.RegexOptions options = Text.RegularExpressions.RegexOptions.CultureInvariant | Text.RegularExpressions.RegexOptions.IgnoreCase)
@@ -1272,20 +1287,21 @@ namespace System.IO
         /// <param name="extension">File or directory name extension</param>
         /// <param name="force_unique">To validate the uniqueness the path in the file system</param>
         /// <returns></returns>
+        static int rand_gen = Environment.TickCount;
         public PathInfo GenerateRandom(string name_pattern = null, string extension = null, bool force_unique = true)
         {
             bool name_pattern_formattable = (name_pattern != null && name_pattern.Contains("{0}"));
 
-            var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789090"; // length 64
+            var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"; // length 62
             var builder = new StringBuilder(((name_pattern == null) ? 0 : name_pattern.Length) + ((extension == null) ? 0 : extension.Length) + 7);
             
             builder.Append(name_pattern);
 
             // generate random key
 
-            var rnd = new Random(Environment.TickCount);
+            var rnd = new Random(++rand_gen);
             for(int i = 0; i < 6; i++)
-                builder.Append(chars[rnd.Next(63)]);
+                builder.Append(chars[rnd.Next(62)]);
             
             // append extension
 
@@ -1711,10 +1727,13 @@ namespace System.IO
 			return File.GetLastWriteTimeUtc(full_path);
         }
         
-        public PathInfo FileMove(PathInfo destination_file_path)
+        public PathInfo FileMove(PathInfo destination_file_path, bool overwrite = false)
 		{
-            // Перенос файла, целевой путь - файл
+            if (overwrite && destination_file_path.FileExists())
+                destination_file_path.FileDelete();
+
 			File.Move(FullPath, destination_file_path);
+
 			return destination_file_path;
 		}
 
