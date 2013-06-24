@@ -1068,7 +1068,13 @@ namespace System.IO
                     .ToList();
         }
 
-        // Other
+        // Common Directory & File
+
+        public FileAttributes Attributes
+        {
+            get { return File.GetAttributes(FullPath); }
+            set { File.SetAttributes(FullPath, value); }
+        }
 
         public void Delete(bool recursive = false)
 		{
@@ -1134,6 +1140,8 @@ namespace System.IO
             FileName = new_name;
 		}
         
+        // New
+
         public static bool MatchesMaskComparer(string text, string _mask)
         {
             // mask wildcards * and ?
@@ -1685,12 +1693,6 @@ namespace System.IO
             return File.GetAccessControl(FullPath, include_sections);
         }
 
-        public FileAttributes FileGetAttributes(string file_name = null)
-        {
-            string full_path = (file_name == null) ? FullPath : IOPath.Combine(FullPath, file_name);
-			return File.GetAttributes(full_path);
-        }
-
         public DateTime FileGetCreationTime(string file_name = null)
         {
             string full_path = (file_name == null) ? FullPath : IOPath.Combine(FullPath, file_name);
@@ -1729,7 +1731,7 @@ namespace System.IO
         
         public PathInfo FileMove(PathInfo destination_file_path, bool overwrite = false)
 		{
-            if (overwrite && destination_file_path.FileExists())
+            if (overwrite && destination_file_path.FileExists() && FileExists())
                 destination_file_path.FileDelete();
 
 			File.Move(FullPath, destination_file_path);
@@ -1827,19 +1829,6 @@ namespace System.IO
         {
             string full_path = IOPath.Combine(FullPath, file_name);
             File.SetAccessControl(full_path, fileSecurity);
-            return new PathInfo(full_path);
-        }
-
-        public PathInfo FileSetAttributes(FileAttributes file_attributes)
-        {
-            File.SetAttributes(FullPath, file_attributes);
-            return this;
-        }
-
-        public PathInfo FileSetAttributes(string file_name, FileAttributes file_attributes)
-        {
-            string full_path = IOPath.Combine(FullPath, file_name);
-            File.SetAttributes(full_path, file_attributes);
             return new PathInfo(full_path);
         }
 
@@ -3127,6 +3116,43 @@ namespace System.IO
             list.AddRange(paths);
             return list;
         }
+        
+        public static void Bulk<T>(this IEnumerable<T> paths, Action<T> action)
+        {
+            List<T> successful = new List<T>();
+            List<WrapException<T>> failed = null;
+
+            foreach(var path in paths)
+            {
+                try
+                {
+                    action(path);
+                    successful.Add(path);
+                }
+                catch (Exception e)
+                {
+                    if (failed == null)
+                        failed = new List<WrapException<T>>();
+
+                    failed.Add(new WrapException<T>(e, path));
+                }
+            }
+
+            if (failed != null)
+                throw new BulkException<T>(successful, failed);
+        }
+
+        public static PathList WherePath(this PathList paths, string regex_pattern)
+        {
+            var regex = new System.Text.RegularExpressions.Regex(regex_pattern, Text.RegularExpressions.RegexOptions.IgnoreCase | Text.RegularExpressions.RegexOptions.CultureInvariant);
+            return paths .Where(path => regex.IsMatch(path.FullPath)) .ToList();
+        }
+
+        public static PathList WhereFileName(this PathList paths, string regex_pattern)
+        {
+            var regex = new System.Text.RegularExpressions.Regex(regex_pattern, Text.RegularExpressions.RegexOptions.IgnoreCase | Text.RegularExpressions.RegexOptions.CultureInvariant);
+            return paths .Where(path => regex.IsMatch(path.FileName)) .ToList();
+        }
     }
 
     /// <summary>Safe walker with error handling and cancellation token</summary>
@@ -3135,13 +3161,9 @@ namespace System.IO
         // TODO
     }
 
-    #region    ------------------ Bulk Pattern Origin ------------------
 
-    /* Основная суть этого паттерна получить групповой результат выполнения операции над перечислимым множеством для последующей обработки ошибок или успехов пакетной операцией.
-     * Паттерн еще не закончен в том смысле, что нужно еще добавить устоявшийся способ группировки результатов множества операций над одним или несколькими перечислимыми множествами.
-     * 
-     * The main essence of this pattern have group result of the operation of the enumerable set for later processing error or success batch operation.
-     * The pattern is not yet complete in the sense that it is necessary to add an method of grouping results of multiple operations involving one or more enumerated sets. */
+    // Bulk Pattern Orgigin ///////////////////////////////////////////////////////////////////////////////////////
+
 
     public class WrapException<T> : Exception
     {
@@ -3170,34 +3192,4 @@ namespace System.IO
             Failed = failed;
         }
     }
-
-    public static class BulkEnumerable
-    {
-        public static void Bulk<T>(this IEnumerable<T> paths, Action<T> action)
-        {
-            List<T> successful = new List<T>();
-            List<WrapException<T>> failed = null;
-
-            foreach(var path in paths)
-            {
-                try
-                {
-                    action(path);
-                    successful.Add(path);
-                }
-                catch (Exception e)
-                {
-                    if (failed == null)
-                        failed = new List<WrapException<T>>();
-
-                    failed.Add(new WrapException<T>(e, path));
-                }
-            }
-
-            if (failed != null)
-                throw new BulkException<T>(successful, failed);
-        }
-    }
-
-    #endregion ------------------ Bulk Pattern Origin ------------------
 }

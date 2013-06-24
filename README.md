@@ -28,69 +28,80 @@ See examples in the unit test, and in the folder Examples
 
 
 ```csharp
-PathInfo temp = Path.GetTempPath();
-// var temp = new PathInfo(@"C:\TEMP");
-// var temp_file = PathInfo.TEMP / subdir / filename;
-// var tmp  = some_path.Combine("some path segment");
+// Creating
 
+PathInfo some_path = Path.GetTempPath();                                    // by assigning the path
+some_path = new PathInfo(@"C:\TEMP", "subdir", "filename.txt");             // from segments
+some_path = PathInfo.Create(@"C:\TEMP\subdir", "filename.txt");             // static factory
+some_path = new PathInfo(@"C:\TEMP\subdir\filename.txt");                   // from full path
 
-// List files by search pattern
+// Special folders
 
-var tmp_files = temp & "*.tmp"; // all .tmp files in temp directory
+some_path = PathInfo.APPLICATION_DATA_LOCAL / "some app folder";
+var temp_path = PathInfo.TEMP;
+PathInfo app_local = Environment.SpecialFolder.LocalApplicationData;        // by assigning the Environment.SpecialFolder value
+app_local = (PathInfo)Environment.SpecialFolder.LocalApplicationData / "some app folder";
 
-// Equivalent code in the classical form
+// Combining
 
-var files = Directory.EnumerateFiles(temp, "*.tmp");
+some_path = some_path.Parent.Combine("some path segment", "filename.txt");  // Combine()
+some_path = some_path.Parent / "some path segment" / "filename.txt";        // "/" Operator 
 
-                
-// List files by match comparer
+// Enumerating
 
-var regex = new Regex(@"\\[0-9]\.tmp$");
-var tmp_digital = temp & (path => { return regex.IsMatch(path); }); // .tmp files files with only numbers in the name.
+var tmp_files = temp_path.Files("*.tmp");                                   // Enumerate .tmp files in temp directory
+var tmp_dirs = temp_path.Directories("*.tmp");
+tmp_files = temp_path & "*.tmp";                                            // eq & Operator enumerate files
 
-                
-// Linq example
+var regex = new Regex(@"\\[0-9]*\.tmp$");
+var tmp_digital = temp_path & (path => { return regex.IsMatch(path); });    // Enumerate by match comparer
+            
+var hidden_dirs = temp_path.Directories().Where(dir => dir.Attributes.HasFlag(FileAttributes.Hidden)); // Enumerate hidden directories in temp directory
+
+// Enumerable
 
 var selected = tmp_files .Where(path => path.Name.StartsWith("Z"));
+selected = tmp_files .WhereFileName("^Z.*$");                               // Regex mathing
 
+// PathList, set operations
 
-// PathList +- Operator example
-
+tmp_digital += temp_path.Files().WhereFileName(@"[0-9]*\.exe");
 tmp_digital -= "Z.*";
 tmp_digital -= (path => path.Name.StartsWith("Z"));
-tmp_digital -= selected;
-tmp_digital += selected;
+var dirs = tmp_dirs + hidden_dirs;
 
+// Bulk
             
-// Bulk moving list of files example
-
 try
 {
-	// Rename .tmp files to .tmp.bak
-	(temp & "*.tmp")
-		.Bulk(path => { path.FileMove(path.FullPath + ".bak"); });
-}
-catch (BulkException<PathInfo> e)
-{
-	foreach(var ewrapper in e.Failed)
-		Assert.Fail("failed " + ewrapper.Object);
-}
+    // files renaming example
 
-
-// Bulk creation directories example
-
-try
-{
-	// a b c hidden directories creation example
-
-	new PathList(new[] { temp / "a", temp/ "b", temp / "c" })
-		.Bulk(path => { path.DirectoryCreate().DirectoryInfo.Attributes |= FileAttributes.Hidden; });
+    tmp_files .Bulk(file => { file.Rename(file.FileName + ".bak"); });
 
 }
 catch (BulkException<PathInfo> e)
 {
-	foreach(var ewrapper in e.Failed)
-		Assert.Fail("failed " + ewrapper.Object);
+    foreach(var renamed in e.Successful)
+        Console.WriteLine(string.Format("renaming succesul, new file name: {0}", renamed.FileName));
+
+    foreach(var fail in e.Failed)
+        Console.WriteLine(string.Format("renaming failed {0}", fail.Object));
 }
+
+try
+{
+    // a b c hidden directories creation example
+
+    new PathList(new[] { temp_path / "a", temp_path / "b", temp_path / "c" })
+        .Bulk(path => { path.DirectoryCreate().DirectoryInfo.Attributes |= FileAttributes.Hidden; });
+
+}
+catch (BulkException<PathInfo> e)
+{
+    foreach (var fail in e.Failed)
+        Console.WriteLine(string.Format("failed ", fail.Object));
+}
+
+
 
 ```
